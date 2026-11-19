@@ -1,0 +1,73 @@
+#!/bin/sh
+# SpiralOS-Updater (GitHub): check | install | rollback | version | channel [stable|beta] | changelog
+. /usr/local/lib/spiralos/msg.sh
+REPO="yepik111/SpiralOS"
+CH=$(cat /etc/spiralos-channel 2>/dev/null || echo stable)
+BRANCH=main; [ "$CH" = beta ] && BRANCH=beta
+RAW="https://raw.githubusercontent.com/$REPO/$BRANCH"
+KEY="${KEY:-/usr/share/spiralos/update-key.gpg}"
+CUR=$(cat /etc/spiralos-version 2>/dev/null || echo 0.0.0)
+remote() { curl -fsSL --max-time 15 "$RAW/VERSION" | tr -d ' \r\n'; }
+newer() { [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" = "$1" ]; }
+asroot() { [ "$(id -u)" = 0 ] || exec sudo "$0" "$@"; }
+fail() { mkdir -p /run/spiralos; echo "update|$1" >> /run/spiralos/events; echo "$1"; exit 1; }
+verify() {
+  T="$1"
+  if [ ! -f "$KEY" ]; then echo "WARNUNG: kein Update-Schluessel im System, Update ungeprueft."; return 0; fi
+  [ -f "$T/MANIFEST.sha256" ] && [ -f "$T/MANIFEST.sha256.asc" ] || return 1
+  GNUPGHOME=$(mktemp -d); export GNUPGHOME; chmod 700 "$GNUPGHOME"
+  gpg --batch -q --import "$KEY" 2>/dev/null
+  gpg --batch -q --verify "$T/MANIFEST.sha256.asc" "$T/MANIFEST.sha256" 2>/dev/null; r=$?
+  rm -rf "$GNUPGHOME"; [ $r = 0 ] || return 1
+  tr -d '\r' < "$T/MANIFEST.sha256" > "$T/M.txt"
+  ( cd "$T" && find rootfs -type f | sort ) > "$T/F.txt"
+  awk '{print $2}' "$T/M.txt" | grep '^rootfs/' | sort | cmp -s - "$T/F.txt" || return 1
+  ( cd "$T" && sha256sum -c --quiet M.txt >/dev/null 2>&1 ) || return 1
+}
+[ -n "$SOURCED_FOR_TEST" ] && return 0
+case "$1" in
+  version) echo "$CUR" ;;
+  changelog) curl -fsSL --max-time 15 "$RAW/CHANGELOG.md" | head -n 40 || m unreach ;;
+  channel)
+    if [ -n "$2" ]; then asroot "$@"; case "$2" in stable|beta) echo "$2" > /etc/spiralos-channel; echo "Channel: $2" ;; *) echo "stable|beta" ;; esac
+    else echo "$CH"; fi ;;
+  check)
+    V=$(remote) || { m unreach; exit 2; }
+    if newer "$V" "$CUR"; then echo "$(m upd_avail): $CUR -> $V"; exit 10; else m upd_ok "$CUR"; fi ;;
+  install|"")
+    asroot "$@"
+    V=$(remote) || { m unreach; exit 2; }
+    newer "$V" "$CUR" || { m upd_ok "$CUR"; exit 0; }
+    m loading "$CUR" "$V"
+    /usr/local/bin/spiralos-snapshot create "pre-update $CUR" >/dev/null 2>&1
+    T=$(mktemp -d)
+    curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$T" --strip-components=1 || fail "Download failed"
+    [ -d "$T/rootfs" ] || fail "rootfs/ missing in repo"
+    verify "$T" || fail "$(m sigbad)"
+    [ "$(tr -d ' \r\n' < "$T/VERSION")" = "$V" ] || fail "VERSION mismatch"
+    find "$T/rootfs" -type f \( -path '*/usr/local/bin/*' -o -name '*.sh' \) -exec sed -i 's/\r$//' {} +
+    for f in "$T"/rootfs/usr/local/bin/*; do
+      [ -f "$f" ] || continue
+      case "$(head -n1 "$f")" in
+        *python*) python3 -m py_compile "$f" 2>/dev/null || fail "$(m aborted "$(basename "$f")")" ;;
+        *sh*) sh -n "$f" 2>/dev/null || fail "$(m aborted "$(basename "$f")")" ;;
+      esac
+    done
+    find "$T" -name __pycache__ -exec rm -rf {} + 2>/dev/null
+    BK="/var/backups/spiralos/$CUR-$(date +%s)"; mkdir -p "$BK"
+    ( cd "$T/rootfs" && find . -type f ) | while read -r f; do
+      [ -e "/$f" ] && { mkdir -p "$BK/$(dirname "$f")"; cp -a "/$f" "$BK/$f"; }
+    done
+    cp -a "$T/rootfs/." /
+    chmod +x /usr/local/bin/spiralos-* /usr/local/bin/execdotece 2>/dev/null
+    [ -f "$T/update.sh" ] && sh "$T/update.sh"
+    ln -sfn "$BK" /var/backups/spiralos/last; echo "$CUR" > /var/backups/spiralos/last.version
+    echo "$V" > /etc/spiralos-version
+    rm -rf "$T"; m updated "$V" ;;
+  rollback)
+    asroot "$@"
+    [ -d /var/backups/spiralos/last ] || { m nobackup; exit 1; }
+    cp -a /var/backups/spiralos/last/. / && cat /var/backups/spiralos/last.version > /etc/spiralos-version
+    m rolled "$(cat /etc/spiralos-version)" ;;
+  *) echo "Usage: spiralos-selfupdate check|install|rollback|version|channel [stable|beta]|changelog" ;;
+esac

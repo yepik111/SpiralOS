@@ -1,0 +1,7 @@
+#!/bin/sh
+# spiralos-host show | set <name>
+case "$1" in
+  ""|show) hostnamectl ;;
+  set) [ -n "$2" ] || exit 1; OLD=$(hostname); sudo hostnamectl set-hostname "$2" && sudo sed -i "s/\b$OLD\b/$2/g" /etc/hosts && echo "Hostname: $2 (log in again)" ;;
+  *) echo "Usage: spiralos-host show|set <name>" ;;
+esac

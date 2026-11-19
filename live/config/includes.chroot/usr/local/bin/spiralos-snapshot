@@ -1,0 +1,25 @@
+#!/bin/sh
+# spiralos-snapshot create [notiz] | auto | list | restore <name|latest> | delete <name>
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+. /usr/local/lib/spiralos/msg.sh
+D=/var/backups/spiralos/snapshots; mkdir -p "$D"
+case "$1" in
+  create|auto)
+    if [ "$1" = auto ]; then
+      last=$(ls -1t "$D" 2>/dev/null | head -n1)
+      [ -n "$last" ] && [ $(( $(date +%s) - $(stat -c %Y "$D/$last") )) -lt 600 ] && exit 0
+    fi
+    N=$(date +%Y%m%d-%H%M%S); mkdir -p "$D/$N"
+    tar -czf "$D/$N/files.tar.gz" --ignore-failed-read -C / etc usr/local var/lib/spiralos 2>/dev/null
+    dpkg --get-selections > "$D/$N/pkgs.txt" 2>/dev/null
+    echo "${2:-manual}" > "$D/$N/note.txt"
+    ls -1t "$D" | tail -n +11 | while read -r x; do rm -rf "$D/$x"; done
+    m snap_done "$N" ;;
+  list) for x in $(ls -1t "$D"); do echo "$x  $(cat "$D/$x/note.txt" 2>/dev/null)"; done ;;
+  restore)
+    N="$2"; [ "$N" = latest ] && N=$(ls -1t "$D" | head -n1)
+    [ -f "$D/$N/files.tar.gz" ] || { m nobackup; exit 1; }
+    tar -xzf "$D/$N/files.tar.gz" -C / && echo "OK: $N (Paketliste: $D/$N/pkgs.txt)" ;;
+  delete) rm -rf "$D/$2" ;;
+  *) echo "Usage: spiralos-snapshot create [note]|list|restore <name|latest>|delete <name>" ;;
+esac

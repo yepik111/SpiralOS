@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+import sys; sys.path.insert(0,'/usr/local/lib/spiralos'); from i18n import tk_t as t
+import tkinter as tk, os
+from tkinter import ttk
+D=os.path.expanduser("~/Notizen"); os.makedirs(D,exist_ok=True)
+root=tk.Tk(); root.title("SpiralOS "+t(20)); root.geometry("700x480")
+lb=tk.Listbox(root,width=24); lb.pack(side="left",fill="y")
+right=ttk.Frame(root); right.pack(fill="both",expand=True)
+name=tk.StringVar(); ttk.Entry(right,textvariable=name).pack(fill="x")
+tx=tk.Text(right,wrap="word"); tx.pack(fill="both",expand=True)
+def refresh():
+    lb.delete(0,"end")
+    for f in sorted(os.listdir(D)): lb.insert("end",f)
+def load(e=None):
+    s=lb.curselection()
+    if s: f=lb.get(s[0]); name.set(f); tx.delete("1.0","end"); tx.insert("1.0",open(os.path.join(D,f)).read())
+def save():
+    if name.get().strip(): open(os.path.join(D,name.get().strip()),"w").write(tx.get("1.0","end-1c")); refresh()
+def new(): name.set("neu.txt"); tx.delete("1.0","end")
+def rm():
+    p=os.path.join(D,name.get())
+    if name.get() and os.path.isfile(p): os.remove(p); new(); refresh()
+bf=ttk.Frame(right); bf.pack(fill="x")
+for t,c in ((t(21),new),(t(22),save),(t(23),rm)): ttk.Button(bf,text=t,command=c).pack(side="left",padx=4,pady=4)
+lb.bind("<<ListboxSelect>>",load); root.bind("<Control-s>",lambda e:save()); refresh(); root.mainloop()

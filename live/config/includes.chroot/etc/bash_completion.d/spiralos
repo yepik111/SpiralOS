@@ -1,0 +1,26 @@
+_spiralos_complete() {
+  local c="${COMP_WORDS[0]##*/}" w="${COMP_WORDS[COMP_CWORD]}" o=""
+  case "$c" in
+    spiralos-selfupdate) o="check install rollback version channel changelog stable beta" ;;
+    spiralos-snapshot) o="create list restore delete latest" ;;
+    spiralos-ssh) o="status on off keygen authorize port passwort" ;;
+    spiralos-firewall) o="on off status allow deny" ;;
+    spiralos-pack) o="claude buero medien entwicklung netzwerk spiele gaming virtualisierung drucker fingerabdruck nvidia firmware" ;;
+    spiralos-language) o="en de es fr pt ru zh ja ar hi tr it pl ko" ;;
+    spiralos-crash) o="test oom disk panic heat battery app fs gpu net update driver" ;;
+    spiralos-services) o="list failed status start stop restart enable disable" ;;
+    spiralos-users) o="list add remove passwd sudo nosudo" ;;
+    spiralos-timezone) o="show list set ntp" ;;
+    spiralos-host) o="show set" ;;
+    spiralos-usb) o="list eject" ;;
+    spiralos-log) o="errors boot today live service" ;;
+    spiralos-reset) o="user" ;;
+    spiralos-claude) o="install doctor web" ;;
+    spiralos-doctor) o="fix" ;;
+    spiralos-sound) o="on off test" ;;
+    spiralos-profile) o="list show apply standard developer gaming privacy minimal" ;;
+    spiralos-docs) o="list INSTALLATION BENUTZERHANDBUCH FEHLERSUCHE THIRD-PARTY COMMANDS" ;;
+  esac
+  COMPREPLY=($(compgen -W "$o" -- "$w"))
+}
+complete -F _spiralos_complete spiralos-selfupdate spiralos-snapshot spiralos-ssh spiralos-firewall spiralos-pack spiralos-language spiralos-crash spiralos-services spiralos-users spiralos-timezone spiralos-host spiralos-usb spiralos-log spiralos-reset spiralos-claude spiralos-doctor spiralos-profile spiralos-docs spiralos-sound

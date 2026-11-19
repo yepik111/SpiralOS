@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+# spiralos-archive [archiv]: Archive ansehen, entpacken und erstellen (zip, tar, 7z)
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+w=win("SpiralOS "+t2("Archives","Archive"),720,540); box=Gtk.VBox(spacing=6,margin=8); w.add(box)
+bar=Gtk.HBox(spacing=6); box.pack_start(bar,False,False,0)
+ls=Gtk.ListStore(str); tv=Gtk.TreeView(model=ls); tv.append_column(Gtk.TreeViewColumn(t2("Contents","Inhalt"),Gtk.CellRendererText(),text=0))
+sw=Gtk.ScrolledWindow(); sw.add(tv); box.pack_start(sw,True,True,0); st=Gtk.Label(xalign=0); box.pack_end(st,False,False,0)
+S={"p":None}
+def kind(p):
+    l=p.lower()
+    if l.endswith(".zip"): return "zip"
+    if l.endswith((".7z",".rar")): return "7z"
+    return "tar"
+def run(cmd): r=subprocess.run(cmd,capture_output=True,text=True); return r.returncode,r.stdout,r.stderr
+def show(p):
+    S["p"]=p; ls.clear(); k=kind(p)
+    rc,o,e=run({"zip":["unzip","-Z1",p],"7z":["7z","l","-ba",p],"tar":["tar","-tf",p]}[k])
+    if rc: st.set_text(e.strip()[:200]); return
+    for l in o.splitlines()[:5000]: ls.append([l.split(None,5)[-1] if k=="7z" else l])
+    st.set_text("%s: %d"%(os.path.basename(p),len(ls)))
+def pick(title,action,multi=False):
+    d=Gtk.FileChooserDialog(title=title,transient_for=w,action=action); d.set_select_multiple(multi); d.add_buttons("Cancel",0,"OK",1)
+    r=d.run(); out=d.get_filenames() if (r==1 and multi) else (d.get_filename() if r==1 else None); d.destroy(); return out
+def opn():
+    p=pick(t2("Open archive","Archiv öffnen"),Gtk.FileChooserAction.OPEN)
+    if p: show(p)
+def extract():
+    if not S["p"]: return
+    d=pick(t2("Extract to","Entpacken nach"),Gtk.FileChooserAction.SELECT_FOLDER)
+    if not d: return
+    k=kind(S["p"]); rc,o,e=run({"zip":["unzip","-o",S["p"],"-d",d],"7z":["7z","x","-y","-o"+d,S["p"]],"tar":["tar","-xf",S["p"],"-C",d]}[k])
+    st.set_text(t2("Done","Fertig") if rc==0 else e.strip()[:200])
+def create(fmt):
+    names=pick(t2("Choose files or folders","Dateien oder Ordner wählen"),Gtk.FileChooserAction.OPEN,True)
+    if not names: return
+    d=Gtk.FileChooserDialog(title=t2("Save archive as","Archiv speichern als"),transient_for=w,action=Gtk.FileChooserAction.SAVE); d.add_buttons("Cancel",0,"OK",1); d.set_current_name("archive."+fmt)
+    out=d.get_filename() if d.run()==1 else None; d.destroy()
+    if not out: return
+    base=os.path.dirname(names[0]); rel=[os.path.relpath(n,base) for n in names]
+    cmd={"zip":["zip","-r",os.path.abspath(out)]+rel,"tar.gz":["tar","-czf",out,"-C",base]+rel,"7z":["7z","a",os.path.abspath(out)]+rel}[fmt]
+    r=subprocess.run(cmd,capture_output=True,text=True,cwd=base); st.set_text(t2("Created","Erstellt")+": "+out if r.returncode==0 else r.stderr[:200])
+for n,c in ((t2("Open","Öffnen"),opn),(t2("Extract all","Alles entpacken"),extract),("-> .zip",lambda:create("zip")),("-> .tar.gz",lambda:create("tar.gz")),("-> .7z",lambda:create("7z"))): bar.pack_start(button(n,c),False,False,0)
+if len(sys.argv)>1: show(os.path.abspath(sys.argv[1]))
+run_app(w)

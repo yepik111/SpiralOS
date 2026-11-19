@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Update SpiralOS
+Name[de]=SpiralOS aktualisieren
+Comment=Check and install updates
+Exec=spiralos-update
+Icon=spiralos-update
+Categories=System;
+Terminal=true

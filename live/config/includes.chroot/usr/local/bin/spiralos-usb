@@ -1,0 +1,8 @@
+#!/bin/sh
+# spiralos-usb list | eject <partition, z.B. /dev/sdb1>
+case "$1" in
+  ""|list) lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINT,RM | awk 'NR==1||$NF==1' ;;
+  eject) [ -b "$2" ] || { echo "Not a device: $2"; exit 1; }
+         udisksctl unmount -b "$2"; DISK="/dev/$(lsblk -no PKNAME "$2" | head -n1)"; udisksctl power-off -b "$DISK" && echo "Safe to remove." ;;
+  *) echo "Usage: spiralos-usb list|eject /dev/sdb1" ;;
+esac

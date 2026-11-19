@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "1.0.0" > /etc/spiralos-version
+chmod +x /usr/local/bin/*
+systemctl enable spiralos-eventd.service

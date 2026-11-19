@@ -1,0 +1,12 @@
+#!/bin/sh
+# Hardware-Assistent: erkennt Geraete und bietet Treiber/Pakete an
+ask() { printf '%s [j/N] ' "$1"; read a; [ "$a" = j ]; }
+echo "== Grafik =="; lspci -nn 2>/dev/null | grep -Ei 'vga|3d|display'
+if lspci 2>/dev/null | grep -qi nvidia; then echo "NVIDIA erkannt."; ask "Proprietaeren NVIDIA-Treiber installieren?" && sudo spiralos-pack nvidia; fi
+echo; echo "== WLAN =="; lspci 2>/dev/null | grep -i network; lsusb 2>/dev/null | grep -iE 'wireless|wlan|802.11'
+nmcli -t -f DEVICE,TYPE device 2>/dev/null | grep -q wifi || { echo "Kein WLAN-Geraet aktiv."; ask "Zusaetzliche Firmware installieren?" && sudo spiralos-pack firmware; }
+echo; echo "== Bluetooth =="; rfkill list bluetooth 2>/dev/null || echo "keiner erkannt"
+echo; echo "== Fingerabdruck =="
+if lsusb 2>/dev/null | grep -qiE 'fingerprint|goodix|validity|synaptics|elan'; then echo "Moeglicher Fingerabdruckleser."; ask "Unterstuetzung installieren?" && sudo spiralos-pack fingerabdruck && echo "Einrichten: fprintd-enroll"; else echo "keiner erkannt"; fi
+echo; echo "== Drucker =="
+ask "Druckerunterstuetzung installieren und Drucker-Einstellungen oeffnen?" && { sudo spiralos-pack drucker; system-config-printer & }

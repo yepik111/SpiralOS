@@ -1,0 +1,14 @@
+#!/bin/sh
+chmod +x /usr/local/bin/*
+cat >> /etc/skel/.bashrc <<'EOT'
+
+# SpiralOS
+alias ll='ls -lah'
+alias update='spiralos-update'
+PS1='\[\e[1;34m\]\u@\h\[\e[0m\]:\w\$ '
+EOT
+cat >> /etc/skel/.bashrc <<'EOT'
+command -v spiralos-tip >/dev/null 2>&1 && spiralos-tip
+command_not_found_handle() { printf '%s: command not found. Try: spiralos-pack %s  or  spiralos-store\n' "$1" "$1" >&2; return 127; }
+EOT
+printf '\nTipp: "spiralos-help" zeigt alle SpiralOS-Befehle.\n\n' >> /etc/motd

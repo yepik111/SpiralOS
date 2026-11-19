@@ -1,0 +1,11 @@
+[Unit]
+Description=SpiralOS Live: SSH-Passwortlogin aus, bis ein eigenes Passwort gesetzt ist
+Before=ssh.service
+ConditionKernelCommandLine=boot=live
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo "PasswordAuthentication no" > /etc/ssh/sshd_config.d/05-live.conf'
+
+[Install]
+WantedBy=multi-user.target

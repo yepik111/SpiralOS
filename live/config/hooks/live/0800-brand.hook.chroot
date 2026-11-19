@@ -1,0 +1,23 @@
+#!/bin/sh
+mkdir -p /usr/share/pixmaps /usr/share/plymouth/themes/spiralos
+python3 /usr/local/lib/spiralos/logo.py /usr/share/pixmaps/spiralos.png
+python3 /usr/local/lib/spiralos/logo.py /usr/share/plymouth/themes/spiralos/logo.png
+if [ -d /usr/share/calamares/branding/debian ]; then
+  cp -r /usr/share/calamares/branding/debian /usr/share/calamares/branding/spiralos
+  D=/usr/share/calamares/branding/spiralos
+  sed -i 's/componentName:.*/componentName: spiralos/; s/Debian GNU\/Linux/SpiralOS/g; s/Debian/SpiralOS/g' "$D/branding.desc"
+  for f in "$D"/*.png; do case "$(basename "$f")" in *logo*|*icon*) cp /usr/share/pixmaps/spiralos.png "$f" ;; esac; done
+  sed -i 's/^branding:.*/branding: spiralos/' /etc/calamares/settings.conf
+fi
+for f in /usr/share/applications/install-debian.desktop /usr/share/calamares/*.desktop; do
+  [ -f "$f" ] && sed -i 's/Install Debian/Install SpiralOS/g; s/Debian/SpiralOS/g' "$f"
+done
+if grep -q '^GRUB_DISTRIBUTOR' /etc/default/grub 2>/dev/null; then sed -i 's/^GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="SpiralOS"/' /etc/default/grub; else echo 'GRUB_DISTRIBUTOR="SpiralOS"' >> /etc/default/grub; fi
+f=/etc/calamares/modules/partition.conf
+if [ -f "$f" ]; then
+  if grep -q enableLuksAutomatedPartitioning "$f"; then sed -i 's/^#\? *enableLuksAutomatedPartitioning:.*/enableLuksAutomatedPartitioning: true/' "$f"; else echo 'enableLuksAutomatedPartitioning: true' >> "$f"; fi
+fi
+command -v plymouth-set-default-theme >/dev/null 2>&1 && plymouth-set-default-theme spiralos
+systemctl enable spiralos-live-ssh.service 2>/dev/null
+fc-cache -f >/dev/null 2>&1
+exit 0

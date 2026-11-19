@@ -1,0 +1,25 @@
+#!/bin/sh
+# spiralos-profile list|show|apply <standard|developer|gaming|privacy|minimal>
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+case "$1" in
+  list|"") cat <<'EOT'
+standard   - ausgewogen: Firewall an, SSH aus
+developer  - Entwicklung: Compiler, Git, Python, Node, Java, Voraussetzungen fuer Claude Code
+gaming     - Steam, Lutris, GameMode
+privacy    - Firewall an, SSH und Bluetooth aus, fail2ban an
+minimal    - Bluetooth, Druckdienst und Akku-Dienst aus (spart Ressourcen)
+EOT
+  ;;
+  show) cat /etc/spiralos-profile 2>/dev/null || echo standard ;;
+  apply)
+    case "$2" in
+      standard) spiralos-firewall on; systemctl disable --now ssh 2>/dev/null; echo "Note: SSH is off. Turn on: spiralos-ssh on" ;;
+      developer) spiralos-pack entwicklung; spiralos-pack claude ;;
+      gaming) spiralos-pack gaming ;;
+      privacy) spiralos-firewall on; systemctl disable --now ssh bluetooth 2>/dev/null; systemctl enable --now fail2ban 2>/dev/null; echo "Note: SSH and Bluetooth are off." ;;
+      minimal) systemctl disable --now bluetooth cups tlp 2>/dev/null ;;
+      *) echo "Unknown profile. See: spiralos-profile list"; exit 1 ;;
+    esac
+    echo "$2" > /etc/spiralos-profile; echo "Profile applied: $2" ;;
+  *) echo "Usage: spiralos-profile list|show|apply <name>" ;;
+esac

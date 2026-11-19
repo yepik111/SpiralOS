@@ -1,0 +1,5 @@
+#!/bin/sh
+for f in isolinux/*.cfg boot/grub/*.cfg; do
+  [ -f "$f" ] && sed -i 's/Debian GNU\/Linux/SpiralOS/g; s/Debian Live/SpiralOS Live/g; s/Debian/SpiralOS/g' "$f"
+done
+exit 0

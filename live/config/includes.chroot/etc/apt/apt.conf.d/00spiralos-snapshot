@@ -1,0 +1,1 @@
+DPkg::Pre-Invoke { "/usr/local/bin/spiralos-snapshot auto >/dev/null 2>&1 || true"; };

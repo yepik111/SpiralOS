@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# Passwort-Manager: Daten als JSON, verschluesselt mit AES-256 (OpenSSL, PBKDF2), Master-Passwort
+import sys, json, secrets, string; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+F=os.path.expanduser("~/.local/share/spiralos/vault.enc"); os.makedirs(os.path.dirname(F),exist_ok=True)
+OS=["openssl","enc","-aes-256-cbc","-pbkdf2","-iter","200000"]
+def env(p): return {**os.environ,"SPW":p}
+def load(p):
+    r=subprocess.run(OS+["-d","-pass","env:SPW","-in",F],capture_output=True,env=env(p))
+    return json.loads(r.stdout) if r.returncode==0 else None
+def store():
+    subprocess.run(OS+["-salt","-pass","env:SPW","-out",F],input=json.dumps(data).encode(),env=env(pw),check=True); os.chmod(F,0o600)
+pw=ask_text(None,"SpiralOS",t2("Master password","Master-Passwort"),True)
+if not pw: sys.exit()
+if os.path.exists(F):
+    data=load(pw)
+    if data is None: msg(None,t2("Wrong master password","Falsches Master-Passwort")); sys.exit()
+else:
+    if ask_text(None,"SpiralOS",t2("Repeat master password","Master-Passwort wiederholen"),True)!=pw: msg(None,t2("Passwords differ","Passwörter stimmen nicht überein")); sys.exit()
+    data={}; store()
+w=win("SpiralOS "+t2("Passwords","Passwörter"),520,460); box=Gtk.VBox(spacing=6,margin=8); w.add(box)
+ls=Gtk.ListStore(str,str); tv=Gtk.TreeView(model=ls)
+for i,n in enumerate((t2("Name","Name"),t2("User","Benutzer"))): tv.append_column(Gtk.TreeViewColumn(n,Gtk.CellRendererText(),text=i))
+def fill():
+    ls.clear()
+    for k,v in sorted(data.items()): ls.append([k,v.get("user","")])
+def sel():
+    m,i=tv.get_selection().get_selected(); return m[i][0] if i else None
+def add():
+    d=Gtk.Dialog(title=t2("New entry","Neuer Eintrag"),transient_for=w); d.add_buttons("OK",1,"Cancel",0); a=d.get_content_area()
+    en=[Gtk.Entry(placeholder_text=p) for p in ("Name",t2("User","Benutzer"),t2("Password","Passwort"))]
+    for x in en: a.pack_start(x,False,False,4)
+    a.pack_start(button(t2("Generate","Erzeugen"),lambda:en[2].set_text("".join(secrets.choice(string.ascii_letters+string.digits+"!@#$%&*") for _ in range(20)))),False,False,4)
+    d.show_all()
+    if d.run()==1 and en[0].get_text(): data[en[0].get_text()]={"user":en[1].get_text(),"pw":en[2].get_text()}; store(); fill()
+    d.destroy()
+def copy():
+    n=sel()
+    if n:
+        cb=Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD); cb.set_text(data[n]["pw"],-1); GLib.timeout_add_seconds(30,lambda:(cb.clear(),False)[1])
+def rm():
+    n=sel()
+    if n: del data[n]; store(); fill()
+sw=Gtk.ScrolledWindow(); sw.add(tv); box.pack_start(sw,True,True,0)
+bb=Gtk.HBox(spacing=6); box.pack_start(bb,False,False,0)
+for n,c in ((t2("Add","Hinzufügen"),add),(t2("Copy password (30 s)","Passwort kopieren (30 s)"),copy),(t2("Delete","Löschen"),rm)): bb.pack_start(button(n,c),False,False,0)
+fill(); run_app(w)

@@ -1,0 +1,12 @@
+[Configuration]
+FontUseSystem=FALSE
+FontName=Spiral Mono 11
+ColorForeground=#e5e9f0
+ColorBackground=#12161c
+ColorCursor=#3b82f6
+ScrollingBar=TERMINAL_SCROLLBAR_NONE
+MiscMenubarDefault=FALSE
+MiscToolbarDefault=FALSE
+MiscBorderDefault=FALSE
+MiscConfirmClose=FALSE
+MiscShowUnsafePasteDialog=FALSE

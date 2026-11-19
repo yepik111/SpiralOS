@@ -1,0 +1,6 @@
+#!/bin/sh
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+. /usr/local/lib/spiralos/msg.sh
+apt-get update && apt-get -y upgrade && apt-get -y autoremove
+spiralos-selfupdate install
+m done

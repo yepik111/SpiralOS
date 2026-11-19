@@ -1,0 +1,12 @@
+spiralos-doctor checks your system and "spiralos-doctor fix" repairs common problems.
+spiralos-snapshot create saves a restore point of your settings before you experiment.
+spiralos-share <folder> shares files with other devices in your network.
+spiralos-sandbox <program> runs a program isolated from your files and the network.
+Ctrl+Alt+Del opens the SpiralOS power menu.
+Press Print for a screenshot, Super+T for a terminal, Super+E for files, Super+L to lock.
+spiralos-timer 10m "tea" sets a quick reminder.
+spiralos-usb eject /dev/sdb1 removes a USB drive safely.
+spiralos-log errors shows what went wrong since boot.
+spiralos-disk shows what fills your disk.
+spiralos-pack lists optional program packs (Office, Gaming, Claude Code ...).
+spiralos-emergency opens the repair menu if something breaks.

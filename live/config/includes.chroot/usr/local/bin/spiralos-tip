@@ -1,0 +1,4 @@
+#!/bin/sh
+F=/usr/local/lib/spiralos/tips.txt
+[ -f "$F" ] && printf '\033[2mTip: %s\033[0m\n' "$(shuf -n1 "$F")"
+exit 0

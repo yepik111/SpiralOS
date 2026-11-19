@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Notfallkonsole
+Comment=Reparatur-Menue
+Exec=xfce4-terminal -e "sudo spiralos-emergency"
+Icon=spiralos-emergency
+Categories=System;
+Terminal=false

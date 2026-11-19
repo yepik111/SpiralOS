@@ -1,0 +1,11 @@
+#!/bin/sh
+. /etc/os-release
+echo "System:   $PRETTY_NAME"
+echo "Version:  $(cat /etc/spiralos-version 2>/dev/null)"
+echo "Kernel:   $(uname -r)"
+echo "Rechner:  $(hostname)"
+echo "Laufzeit: $(uptime -p)"
+echo "CPU:      $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ //')"
+echo "RAM:      $(free -h | awk '/Mem:/{print $3" / "$2}')"
+echo "Platte /: $(df -h / | awk 'NR==2{print $3" / "$2" ("$5")"}')"
+echo "IP:       $(hostname -I)"

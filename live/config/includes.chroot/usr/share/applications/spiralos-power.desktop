@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Power menu
+Name[de]=Ausschalten-Menue
+Comment=Lock, log out, restart, shut down
+Exec=spiralos-power
+Icon=spiralos-power
+Categories=System;
+Terminal=false

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Backup Plan
+Name[de]=Backup-Planer
+Comment=Automatic backups
+Exec=spiralos-backupplan
+Icon=spiralos-backupplan
+Categories=System;
+Terminal=false

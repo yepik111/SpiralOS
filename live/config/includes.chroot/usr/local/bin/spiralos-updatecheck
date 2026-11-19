@@ -1,0 +1,5 @@
+#!/bin/sh
+sleep 40
+spiralos-selfupdate check >/dev/null 2>&1
+[ $? = 10 ] && notify-send "SpiralOS" "Ein Update ist verfuegbar: Systemzentrum > Wartung > SpiralOS-Update"
+exit 0

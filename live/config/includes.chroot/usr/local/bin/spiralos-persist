@@ -1,0 +1,15 @@
+#!/bin/sh
+# Legt auf dem USB-Stick, von dem SpiralOS laeuft, eine Speicher-Partition ("persistence") an
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+M=/run/live/medium
+[ -d "$M" ] || { echo "Nur im Live-System von einem USB-Stick moeglich."; exit 1; }
+P=$(findmnt -n -o SOURCE "$M"); DISK="/dev/$(lsblk -no PKNAME "$P" | head -n1)"
+echo "USB-Stick: $DISK"; lsblk "$DISK"
+printf 'Freien Platz auf %s als Speicher-Partition anlegen? Vorhandene Daten bleiben erhalten. [j/N] ' "$DISK"; read a
+[ "$a" = j ] || exit 0
+echo ',,L' | sfdisk --append "$DISK" || { echo "Partition konnte nicht angelegt werden (kein freier Platz?)."; exit 1; }
+partprobe "$DISK" 2>/dev/null; sleep 3
+NEW=$(lsblk -lnpo NAME "$DISK" | tail -n1)
+mkfs.ext4 -F -L persistence "$NEW" >/dev/null
+mkdir -p /mnt/spiral-p; mount "$NEW" /mnt/spiral-p; echo "/ union" > /mnt/spiral-p/persistence.conf; umount /mnt/spiral-p
+echo "Fertig. Beim naechsten Start von diesem Stick bleiben deine Daten erhalten."

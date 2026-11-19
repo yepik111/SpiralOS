@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# spiralos-view [bild]: Bildbetrachter (vor/zurueck, zoom, drehen, in den Papierkorb)
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+from gi.repository import GdkPixbuf
+EXT=(".png",".jpg",".jpeg",".gif",".bmp",".webp",".svg",".tif",".tiff")
+w=win("SpiralOS "+t2("Images","Bilder"),940,680); box=Gtk.VBox(); w.add(box)
+bar=Gtk.HBox(spacing=6,margin=6); box.pack_start(bar,False,False,0)
+sw=Gtk.ScrolledWindow(); img=Gtk.Image(); sw.add(img); box.pack_start(sw,True,True,0)
+st=Gtk.Label(xalign=0,margin=4); box.pack_end(st,False,False,0)
+S={"files":[],"i":0,"zoom":None,"rot":0}
+def show():
+    if not S["files"]: st.set_text(t2("No image","Kein Bild")); return
+    p=S["files"][S["i"]]
+    try: pb=GdkPixbuf.Pixbuf.new_from_file(p)
+    except Exception as e: st.set_text(str(e)); return
+    for _ in range(S["rot"]%4): pb=pb.rotate_simple(GdkPixbuf.PixbufRotation.CLOCKWISE)
+    a=sw.get_allocation(); z=S["zoom"] or min(max(a.width,50)/pb.get_width(),max(a.height,50)/pb.get_height(),1.0)
+    img.set_from_pixbuf(pb.scale_simple(max(1,int(pb.get_width()*z)),max(1,int(pb.get_height()*z)),GdkPixbuf.InterpType.BILINEAR))
+    st.set_text("%s   %dx%d   %d/%d   %d%%"%(os.path.basename(p),pb.get_width(),pb.get_height(),S["i"]+1,len(S["files"]),int(z*100)))
+def load(p):
+    p=os.path.abspath(p); d=os.path.dirname(p); S["files"]=sorted(os.path.join(d,f) for f in os.listdir(d) if f.lower().endswith(EXT)); S["i"]=S["files"].index(p) if p in S["files"] else 0; S["zoom"]=None; S["rot"]=0; show()
+def opn():
+    d=Gtk.FileChooserDialog(title="",transient_for=w,action=Gtk.FileChooserAction.OPEN); d.add_buttons("Cancel",0,"OK",1)
+    if d.run()==1: load(d.get_filename())
+    d.destroy()
+def step(n):
+    if S["files"]: S["i"]=(S["i"]+n)%len(S["files"]); S["zoom"]=None; S["rot"]=0; show()
+def zoom(f):
+    cur=S["zoom"] or 1.0; S["zoom"]=max(0.05,min(8,cur*f)); show()
+def fit(): S["zoom"]=None; show()
+def rot(): S["rot"]+=1; show()
+def trash():
+    if S["files"]:
+        p=S["files"].pop(S["i"]); subprocess.run(["gio","trash",p]); S["i"]=min(S["i"],max(0,len(S["files"])-1)); show()
+for n,c in ((t2("Open","Öffnen"),opn),("<",lambda:step(-1)),(">",lambda:step(1)),("+",lambda:zoom(1.25)),("-",lambda:zoom(0.8)),(t2("Fit","Anpassen"),fit),(t2("Rotate","Drehen"),rot),(t2("Trash","Papierkorb"),trash)): bar.pack_start(button(n,c),False,False,0)
+w.connect("key-press-event",lambda _w,e:(step(1) if e.keyval==Gdk.KEY_Right else step(-1) if e.keyval==Gdk.KEY_Left else None) and False)
+sw.connect("size-allocate",lambda *a:None)
+if len(sys.argv)>1: load(sys.argv[1])
+run_app(w)

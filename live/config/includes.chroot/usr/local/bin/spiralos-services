@@ -1,0 +1,10 @@
+#!/bin/sh
+# spiralos-services list|failed|status|start|stop|restart|enable|disable [dienst]
+S=""; [ "$(id -u)" = 0 ] || S=sudo
+case "$1" in
+  list|"") systemctl list-units --type=service --state=running --no-legend | awk '{print $1}' | sed 's/\.service$//' ;;
+  failed) systemctl --failed ;;
+  status) systemctl status "$2" --no-pager ;;
+  start|stop|restart|enable|disable) $S systemctl "$1" "$2" && echo "$1 $2: ok" ;;
+  *) echo "Usage: spiralos-services list|failed|status|start|stop|restart|enable|disable <service>" ;;
+esac

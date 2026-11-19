@@ -1,0 +1,14 @@
+#!/bin/sh
+# SSH-Verwaltung
+S=""; [ "$(id -u)" = 0 ] || S=sudo
+C=/etc/ssh/sshd_config.d/10-spiralos.conf
+case "$1" in
+  status) systemctl is-active ssh; ss -tlnp 2>/dev/null | grep sshd ;;
+  on) $S systemctl enable --now ssh && echo "SSH aktiv" ;;
+  off) $S systemctl disable --now ssh && echo "SSH aus" ;;
+  keygen) mkdir -p ~/.ssh; ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" ;;
+  authorize) mkdir -p ~/.ssh; cat "$2" >> ~/.ssh/authorized_keys; chmod 700 ~/.ssh; chmod 600 ~/.ssh/authorized_keys; echo "Schluessel eingetragen" ;;
+  port) $S sed -i '/^Port /d' $C; echo "Port $2" | $S tee -a $C >/dev/null; $S systemctl restart ssh; echo "Port: $2" ;;
+  passwort) V=yes; [ "$2" = aus ] && V=no; $S sed -i '/^PasswordAuthentication/d' $C; echo "PasswordAuthentication $V" | $S tee -a $C >/dev/null; $S systemctl restart ssh; echo "Passwort-Login: $V" ;;
+  *) echo "Nutzung: spiralos-ssh status|on|off|keygen|authorize <pubkey>|port <n>|passwort an|aus" ;;
+esac

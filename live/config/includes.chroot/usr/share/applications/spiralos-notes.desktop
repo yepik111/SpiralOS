@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Notizen
+Comment=Einfache Notizen
+Exec=spiralos-notes
+Icon=spiralos-notes
+Categories=Utility;TextEditor;
+Terminal=false

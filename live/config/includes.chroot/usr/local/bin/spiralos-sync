@@ -1,0 +1,4 @@
+#!/bin/sh
+# spiralos-sync <quelle> <ziel> [rsync-optionen]   (lokal oder user@host:/pfad). Tipp: erst mit -n (Testlauf)
+[ $# -ge 2 ] || { echo "Usage: spiralos-sync <source> <target> [rsync options, e.g. -n or --delete]"; exit 1; }
+exec rsync -ah --info=progress2 "$@"

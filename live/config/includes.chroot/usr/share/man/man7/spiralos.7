@@ -1,0 +1,131 @@
+.TH SPIRALOS 7 "" "SpiralOS 1.0" "SpiralOS"
+.SH NAME
+spiralos \- Uebersicht der SpiralOS-Befehle
+.SH DESCRIPTION
+execdotece: execdotece [\-\-prefix NAME] [\-\-winetricks "verb ..."] <datei.exe|.msi> [argumente]
+.br
+spiralos\-archive: Archive ansehen, entpacken und erstellen (zip, tar, 7z)
+.br
+spiralos\-backup: spiralos\-backup create <quelle> <zielordner> | list <zielordner> | restore <archiv> <zielordner>
+.br
+spiralos\-backupplan: SpiralOS\-Programm
+.br
+spiralos\-battery: SpiralOS\-Programm
+.br
+spiralos\-calc: SpiralOS\-Programm
+.br
+spiralos\-center: SpiralOS\-Programm
+.br
+spiralos\-claude: Claude Code fuer SpiralOS: spiralos\-claude [install|doctor|web|<claude\-argumente>]
+.br
+spiralos\-clean: SpiralOS\-Programm
+.br
+spiralos\-crash: spiralos\-crash <typ> [detail]  |  spiralos\-crash test <typ>
+.br
+spiralos\-crashwatch: Ueberwacht das System und zeigt Absturz\-Bildschirme (laeuft in der Sitzung)
+.br
+spiralos\-disk: Belegung, groesste Ordner, Festplatten\-Gesundheit
+.br
+spiralos\-docs: Handbuecher lesen (INSTALLATION, BENUTZERHANDBUCH, FEHLERSUCHE, THIRD\-PARTY, COMMANDS)
+.br
+spiralos\-doctor: SpiralOS\-Programm
+.br
+spiralos\-edit: Texteditor mit Tabs, Suchen/Ersetzen und Zoom
+.br
+spiralos\-emergency: SpiralOS Notfallkonsole: Reparatur\-Menue
+.br
+spiralos\-eventd: Root\-Dienst: liest das Kernel\-Log und meldet Ereignisse an die Sitzung
+.br
+spiralos\-firewall: SpiralOS\-Programm
+.br
+spiralos\-firstlogin: SpiralOS\-Programm
+.br
+spiralos\-hardware: Hardware\-Assistent: erkennt Geraete und bietet Treiber/Pakete an
+.br
+spiralos\-healthcheck: Unsichtbarer Gesundheitscheck kurz nach dem Login: meldet Probleme per Benachrichtigung
+.br
+spiralos\-help: SpiralOS\-Programm
+.br
+spiralos\-host: spiralos\-host show | set <name>
+.br
+spiralos\-info: SpiralOS\-Programm
+.br
+spiralos\-install: Installationsassistent: PC\-Check, Hinweise, Start des Installers (Calamares)
+.br
+spiralos\-install\-check: prueft den PC, bevor SpiralOS installiert wird
+.br
+spiralos\-language: Systemsprache und Tastatur umstellen
+.br
+spiralos\-log: spiralos\-log errors|boot|today|live|service <name>
+.br
+spiralos\-loginsound: SpiralOS\-Programm
+.br
+spiralos\-monitor: SpiralOS\-Programm
+.br
+spiralos\-net: SpiralOS\-Programm
+.br
+spiralos\-notes: SpiralOS\-Programm
+.br
+spiralos\-pack: Optionale Programmpakete nachinstallieren: spiralos\-pack <name> | spiralos\-pack <apt\-paket> ...
+.br
+spiralos\-pass: Passwort\-Manager: Daten als JSON, verschluesselt mit AES\-256 (OpenSSL, PBKDF2), Master\-Passwort
+.br
+spiralos\-persist: Legt auf dem USB\-Stick, von dem SpiralOS laeuft, eine Speicher\-Partition ("persistence") an
+.br
+spiralos\-postinstall: Laeuft einmalig nach der Installation (Dienst spiralos\-postinstall.service)
+.br
+spiralos\-power: SpiralOS\-Programm
+.br
+spiralos\-profile: spiralos\-profile list|show|apply <standard|developer|gaming|privacy|minimal>
+.br
+spiralos\-quickshot: SpiralOS\-Programm
+.br
+spiralos\-reset: Oberflaeche (Desktop\-Einstellungen) zuruecksetzen, Dateien bleiben
+.br
+spiralos\-sandbox: startet ein Programm isoliert (temporaeres Home, ohne Netzwerk)
+.br
+spiralos\-search: SpiralOS\-Programm
+.br
+spiralos\-selfupdate: SpiralOS\-Updater (GitHub): check | install | rollback | version | channel [stable|beta] | changelog
+.br
+spiralos\-services: spiralos\-services list|failed|status|start|stop|restart|enable|disable [dienst]
+.br
+spiralos\-setpass: Beim ersten Start im Live\-System: eigenes Passwort statt "live" setzen und SSH\-Passwort\-Login freigeben
+.br
+spiralos\-settings: SpiralOS\-Programm
+.br
+spiralos\-share: gibt Dateien im lokalen Netzwerk per Browser frei (Strg+C beendet)
+.br
+spiralos\-shot: SpiralOS\-Programm
+.br
+spiralos\-snapshot: spiralos\-snapshot create [notiz] | auto | list | restore <name|latest> | delete <name>
+.br
+spiralos\-sound: Anmeldeklang und Systemklaenge
+.br
+spiralos\-speedtest: SpiralOS\-Programm
+.br
+spiralos\-ssh: SSH\-Verwaltung
+.br
+spiralos\-store: SpiralOS\-Programm
+.br
+spiralos\-sync: /pfad). Tipp: erst mit \-n (Testlauf)
+.br
+spiralos\-timer: 90, 5m, 2h> [text]
+.br
+spiralos\-timezone: spiralos\-timezone show|list|set <Zone>|ntp on|off
+.br
+spiralos\-tip: SpiralOS\-Programm
+.br
+spiralos\-update: SpiralOS\-Programm
+.br
+spiralos\-updatecheck: SpiralOS\-Programm
+.br
+spiralos\-usb: spiralos\-usb list | eject <partition, z.B. /dev/sdb1>
+.br
+spiralos\-users: spiralos\-users list|add|remove|passwd|sudo|nosudo <name>
+.br
+spiralos\-view: Bildbetrachter (vor/zurueck, zoom, drehen, in den Papierkorb)
+.br
+spiralos\-weather: spiralos\-weather [ort]  (nutzt wttr.in)
+.br
+spiralos\-welcome: SpiralOS\-Programm

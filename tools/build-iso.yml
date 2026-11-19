@@ -1,0 +1,47 @@
+name: ISO bauen
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Selbsttest (bricht frueh ab, wenn etwas kaputt ist)
+        run: bash tools/selftest.sh
+      - name: Platz schaffen
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache
+          df -h /
+      - name: ISO bauen (Debian-Container)
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          docker run --rm --privileged -e SRC=/src -e OUT=/out -e USE_IMAGE=0 \
+            -v "$GITHUB_WORKSPACE":/src -v "$RUNNER_TEMP/out":/out debian:bookworm bash /src/build.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: SpiralOS-ISO
+          path: |
+            ${{ runner.temp }}/out/SpiralOS-1.0-amd64.iso
+            ${{ runner.temp }}/out/SpiralOS-1.0-amd64.iso.sha256
+            ${{ runner.temp }}/out/build.log
+            ${{ runner.temp }}/out/missing-packages.txt
+          compression-level: 0
+          retention-days: 14
+      - name: Release mit ISO-Teilen erstellen (nur bei Tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/out"
+          split -b 1900M -d SpiralOS-1.0-amd64.iso SpiralOS-1.0-amd64.iso.part
+          gh release delete "$GITHUB_REF_NAME" --yes --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+          gh release create "$GITHUB_REF_NAME" SpiralOS-1.0-amd64.iso.part* SpiralOS-1.0-amd64.iso.sha256 build.log missing-packages.txt \
+            --repo "$GITHUB_REPOSITORY" --title "SpiralOS ISO $GITHUB_REF_NAME" \
+            --notes "ISO in Teilen (je max. 1,9 GB, GitHub-Limit). Alle .part-Dateien in einen Ordner laden und mit tools/join-iso.bat (Windows) oder 'cat SpiralOS-1.0-amd64.iso.part* > SpiralOS-1.0-amd64.iso' (Linux) zusammensetzen. Pruefsumme: .sha256."

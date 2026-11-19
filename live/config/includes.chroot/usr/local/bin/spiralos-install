@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+# Installationsassistent: PC-Check, Hinweise, Start des Installers (Calamares)
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+w=win(t2("Install SpiralOS","SpiralOS installieren"),720,560); box=Gtk.VBox(spacing=8,margin=12); w.add(box)
+box.pack_start(Gtk.Label(label=t2("1. Check this PC   2. Back up your data   3. Start the installer","1. PC prüfen   2. Daten sichern   3. Installer starten")),False,False,0)
+out=Out(360); box.pack_start(out,True,True,0)
+def check(): out.run("/usr/local/bin/spiralos-install-check")
+bar=Gtk.HBox(spacing=8); box.pack_start(bar,False,False,0)
+for label,cb in ((t2("Check again","Erneut prüfen"),check),
+                 (t2("Partition tool","Partitionierung"),lambda:subprocess.Popen(["pkexec","gparted"])),
+                 (t2("Read guide","Anleitung lesen"),lambda:subprocess.Popen(["xfce4-terminal","-e","spiralos-docs INSTALLATION"])),
+                 (t2("Start installer","Installer starten"),lambda:subprocess.Popen("sudo -E calamares",shell=True))):
+    bar.pack_start(button(label,cb),False,False,0)
+check(); run_app(w)

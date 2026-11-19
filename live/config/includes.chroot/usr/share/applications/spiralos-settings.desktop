@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Settings
+Name[de]=SpiralOS Einstellungen
+Comment=Display, sound, WiFi, look
+Exec=spiralos-settings
+Icon=spiralos-settings
+Categories=Settings;System;
+Terminal=false

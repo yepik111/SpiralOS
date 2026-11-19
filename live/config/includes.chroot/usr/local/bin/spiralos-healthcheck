@@ -1,0 +1,11 @@
+#!/bin/sh
+# Unsichtbarer Gesundheitscheck kurz nach dem Login: meldet Probleme per Benachrichtigung
+sleep 90
+M=""
+F=$(systemctl --failed --no-legend 2>/dev/null | awk '{for(i=1;i<=2;i++) if($i ~ /\.service$/) print $i}' | head -n3 | tr '\n' ' ')
+[ -n "$F" ] && M="$M\nFailed services: $F"
+U=$(df / | awk 'NR==2{gsub("%","",$5);print $5}'); [ "$U" -ge 85 ] && M="$M\nDisk is $U% full"
+[ -f /var/run/reboot-required ] && M="$M\nA restart is required"
+N=$(apt list --upgradable 2>/dev/null | grep -c upgradable); [ "$N" -gt 0 ] && M="$M\n$N package updates available (spiralos-update)"
+[ -n "$M" ] && notify-send "SpiralOS health" "$(printf '%b' "$M" | sed '/^$/d')"
+exit 0

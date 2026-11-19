@@ -1,0 +1,20 @@
+#!/bin/sh
+# Optionale Programmpakete nachinstallieren: spiralos-pack <name> | spiralos-pack <apt-paket> ...
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+case "$1" in
+  buero) P="libreoffice libreoffice-l10n-de thunderbird thunderbird-l10n-de" ;;
+  medien) P="vlc gimp audacity ffmpeg" ;;
+  entwicklung) P="build-essential git python3 python3-pip nodejs npm default-jdk" ;;
+  netzwerk) P="nmap tcpdump wireshark netcat-openbsd" ;;
+  spiele) P="supertuxkart wesnoth" ;;
+  gaming) dpkg --add-architecture i386; P="steam-installer lutris gamemode libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386" ;;
+  virtualisierung) P="qemu-system-x86 virt-manager libvirt-daemon-system" ;;
+  drucker) P="cups system-config-printer printer-driver-all hplip" ;;
+  fingerabdruck) P="fprintd libpam-fprintd" ;;
+  claude) P="curl git ripgrep"; NOTE="Jetzt als normaler Benutzer (ohne sudo): spiralos-claude install" ;;
+  nvidia) P="nvidia-driver firmware-misc-nonfree" ;;
+  firmware) P="firmware-linux-nonfree firmware-iwlwifi firmware-realtek firmware-atheros firmware-brcm80211 firmware-misc-nonfree" ;;
+  ""|list) echo "Packs: claude buero medien entwicklung netzwerk spiele gaming virtualisierung drucker fingerabdruck nvidia firmware"; echo "Or any apt package: spiralos-pack htop"; exit 0 ;;
+  *) P="$*" ;;
+esac
+apt-get update && apt-get install -y $P && [ -z "$NOTE" ] || echo "$NOTE"

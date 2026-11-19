@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+LN=[("en","English"),("de","Deutsch"),("es","Español"),("fr","Français"),("pt","Português (Brasil)"),("ru","Русский"),("zh","中文 (简体)"),("ja","日本語"),("ar","العربية"),("hi","हिन्दी"),("tr","Türkçe"),("it","Italiano"),("pl","Polski"),("ko","한국어")]
+w=win(t(24),560,420); box=Gtk.VBox(spacing=8,margin=16); w.add(box)
+st=Gtk.Stack(); box.pack_start(st,True,True,0)
+def page(name,*ws):
+    v=Gtk.VBox(spacing=10)
+    for x in ws: v.pack_start(x,False,False,0)
+    st.add_named(v,name)
+page("0",Gtk.Label(label=t(24)+"\n\nSpiralOS 1.0 (Helix)"))
+lc=Gtk.ComboBoxText(); [lc.append_text(n) for c,n in LN]; lc.set_active(0)
+page("1",Gtk.Label(label="Language / Sprache"),lc)
+TH=[("SpiralOS","SpiralOS"),("Adwaita","Adwaita"),("Adwaita-dark","Adwaita dark")]
+tc=Gtk.ComboBoxText(); [tc.append_text(n) for k,n in TH]; tc.set_active(0)
+page("2",Gtk.Label(label=t2("Choose a look","Wähle ein Design")),tc)
+PK=[("buero","Office"),("medien","Media"),("entwicklung","Dev"),("gaming","Gaming (Steam)"),("drucker","Printer"),("claude","Claude Code")]
+ck=[Gtk.CheckButton(label=n) for p,n in PK]
+page("3",Gtk.Label(label=t(1)),*ck)
+page("4",Gtk.Label(label=t2("All set. Apply your choices?","Alles bereit. Auswahl anwenden?")))
+bar=Gtk.HBox(spacing=8); box.pack_end(bar,False,False,0)
+i=[0]; N=5
+back=Gtk.Button(label="<"); nxt=Gtk.Button(label=">")
+def show():
+    st.set_visible_child_name(str(i[0])); back.set_sensitive(i[0]>0); nxt.set_label(t2("Apply","Anwenden") if i[0]==N-1 else ">")
+def apply():
+    cmds=[]
+    if lc.get_active()>0: cmds.append("pkexec /usr/local/bin/spiralos-language "+LN[lc.get_active()][0])
+    for (p,n),c in zip(PK,ck):
+        if c.get_active(): cmds.append("pkexec /usr/local/bin/spiralos-pack "+p+("; spiralos-claude install" if p=="claude" else ""))
+    sh("xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s '%s'"%TH[tc.get_active()][0])
+    if cmds: subprocess.Popen(["xfce4-terminal","-e","sh -c '%s; echo; read x'"%"; ".join(cmds)])
+    w.destroy()
+def go(d):
+    if d>0 and i[0]==N-1: apply(); return
+    i[0]=max(0,min(N-1,i[0]+d)); show()
+back.connect("clicked",lambda _b:go(-1)); nxt.connect("clicked",lambda _b:go(1))
+bar.pack_start(back,False,False,0); bar.pack_end(nxt,False,False,0)
+w.show_all(); show(); Gtk.main()

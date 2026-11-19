@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+import sys, re; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+w=win("SpiralOS "+t2("Settings","Einstellungen"),620,480); nb=Gtk.Notebook(); w.add(nb)
+def tab(n):
+    v=Gtk.VBox(spacing=10,margin=14); nb.append_page(v,Gtk.Label(label=n)); return v
+def add(v,*ws):
+    for x in ws: v.pack_start(x,False,False,0)
+d=tab(t2("Display","Anzeige")); q=sh("xrandr --query"); m=re.search(r"^(\S+) connected",q,re.M); outp=m.group(1) if m else ""
+mc=Gtk.ComboBoxText(); [mc.append_text(x) for x in re.findall(r"^\s+(\d+x\d+)",q,re.M)]; mc.set_active(0)
+br=Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL,30,100,1); br.set_value(100)
+br.connect("value-changed",lambda s:sh("xrandr --output %s --brightness %.2f"%(outp,s.get_value()/100)))
+add(d,Gtk.Label(label=t2("Resolution","Auflösung")),mc,button(t2("Apply","Übernehmen"),lambda:sh("xrandr --output %s --mode %s"%(outp,mc.get_active_text()))),Gtk.Label(label=t2("Brightness","Helligkeit")),br)
+s=tab(t2("Sound","Ton")); vol=Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL,0,100,1); vol.set_value(60)
+vol.connect("value-changed",lambda x:sh("pactl set-sink-volume @DEFAULT_SINK@ %d%%"%x.get_value()))
+add(s,Gtk.Label(label=t2("Volume","Lautstärke")),vol,button("Mute",lambda:sh("pactl set-sink-mute @DEFAULT_SINK@ toggle")))
+n=tab("WiFi"); sc=Gtk.ComboBoxText(); pw=Gtk.Entry(visibility=False,placeholder_text="Password"); st=Gtk.Label()
+def scan():
+    sc.remove_all()
+    for l in sh("nmcli -t -f SSID dev wifi").splitlines():
+        if l: sc.append_text(l)
+    sc.set_active(0)
+def conn():
+    r=subprocess.run(["nmcli","dev","wifi","connect",sc.get_active_text() or "","password",pw.get_text()],capture_output=True,text=True); st.set_text((r.stdout+r.stderr).strip())
+scan(); add(n,button(t2("Scan","Suchen"),scan),sc,pw,button(t2("Connect","Verbinden"),conn),st)
+g=tab(t2("Look","Design")); tc=Gtk.ComboBoxText(); [tc.append_text(x) for x in ("SpiralOS","Adwaita","Adwaita-dark")]; tc.set_active(0)
+fc=Gtk.FileChooserButton(title="Wallpaper")
+def wall(_b):
+    f=fc.get_filename()
+    if f:
+        for p in sh("xfconf-query -c xfce4-desktop -l | grep last-image$").split(): sh("xfconf-query -c xfce4-desktop -p %s -s '%s'"%(p,f))
+fc.connect("file-set",wall)
+fn=Gtk.ComboBoxText(); [fn.append_text(x) for x in ("Spiral Sans 10","Inter 10","Sans 10")]; fn.set_active(0)
+add(g,Gtk.Label(label=t2("Font","Schrift")),fn,button(t2("Apply font","Schrift übernehmen"),lambda:sh("xfconf-query -c xsettings -p /Gtk/FontName -n -t string -s '%s'"%fn.get_active_text())))
+add(g,Gtk.Label(label="Theme"),tc,button(t2("Apply","Übernehmen"),lambda:sh("xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s %s"%tc.get_active_text())),
+    button(t2("Dark panel","Dunkles Panel"),lambda:sh("xfconf-query -c xfce4-panel -p /panels/dark-mode -n -t bool -s true")),Gtk.Label(label=t2("Wallpaper","Hintergrund")),fc)
+k=tab(t2("Language","Sprache")); add(k,button("Language / Sprache",lambda:subprocess.Popen(["spiralos-center"])))
+run_app(w)

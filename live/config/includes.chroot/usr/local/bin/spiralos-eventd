@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+# Root-Dienst: liest das Kernel-Log und meldet Ereignisse an die Sitzung
+import subprocess, re, os, time
+os.makedirs("/run/spiralos",exist_ok=True); os.chmod("/run/spiralos",0o755)
+R=[("oom",re.compile(r"Out of memory: Killed process \d+ \((.+?)\)")),
+   ("app",re.compile(r"(\S+)\[\d+\]: segfault at")),
+   ("fs",re.compile(r"EXT4-fs error|Buffer I/O error|XFS .*error|BTRFS error")),
+   ("gpu",re.compile(r"GPU HANG|amdgpu.*(timeout|failed)|nouveau.*fault")),
+   ("panic",re.compile(r"Kernel panic|BUG: |Oops:")),
+   ("driver",re.compile(r"failed to load firmware|firmware: failed|probe of \S+ failed"))]
+cool={}
+import threading
+def smart():
+    while True:
+        for d in sorted(os.listdir("/sys/block")):
+            if d.startswith(("sd","nvme","vd")):
+                r=subprocess.run(["smartctl","-H","/dev/"+d],capture_output=True,text=True).stdout
+                if "FAILED" in r:
+                    with open("/run/spiralos/events","a") as f: f.write("fs|SMART health check FAILED: /dev/%s\n"%d)
+        time.sleep(3600)
+threading.Thread(target=smart,daemon=True).start()
+p=subprocess.Popen(["journalctl","-k","-f","-n0","-o","cat"],stdout=subprocess.PIPE,text=True)
+for l in p.stdout:
+    for t,rx in R:
+        m=rx.search(l)
+        if m and time.time()-cool.get(t,0)>60:
+            cool[t]=time.time()
+            d=m.group(1) if t in ("oom","app") else l.strip()[:200]
+            if t=="oom": d="Killed: "+d
+            with open("/run/spiralos/events","a") as f: f.write("%s|%s\n"%(t,d))

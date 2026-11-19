@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "Download test (Cloudflare, 25 MB) ..."
+S=$(curl -s -o /dev/null -w '%{speed_download}' --max-time 60 "https://speed.cloudflare.com/__down?bytes=25000000") || { echo "Test failed (internet?)."; exit 1; }
+awk -v s="$S" 'BEGIN{printf "Download: %.1f Mbit/s\n", s*8/1000000}'
+echo "Latency: $(ping -c3 -q 1.1.1.1 2>/dev/null | awk -F/ '/rtt/{print $5" ms"}')"

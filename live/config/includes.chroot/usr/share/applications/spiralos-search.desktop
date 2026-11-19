@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=File Search
+Name[de]=Dateisuche
+Comment=Find files
+Exec=spiralos-search
+Icon=spiralos-search
+Categories=Utility;
+Terminal=false

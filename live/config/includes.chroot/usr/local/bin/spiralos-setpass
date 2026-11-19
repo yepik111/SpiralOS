@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+# Beim ersten Start im Live-System: eigenes Passwort statt "live" setzen und SSH-Passwort-Login freigeben
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+user=os.environ.get("USER","spiral")
+while True:
+    p1=ask_text(None,"SpiralOS",t2("Choose a new password for the live user (min. 8 characters). Until then SSH password login stays off.","Wähle ein neues Passwort für den Live-Benutzer (mind. 8 Zeichen). Bis dahin bleibt SSH-Passwort-Login aus."),True)
+    if p1 is None: sys.exit(0)
+    if len(p1)<8: msg(None,t2("Too short","Zu kurz")); continue
+    p2=ask_text(None,"SpiralOS",t2("Repeat password","Passwort wiederholen"),True)
+    if p1!=p2: msg(None,t2("Passwords differ","Passwörter stimmen nicht überein")); continue
+    break
+subprocess.run(["sudo","-n","chpasswd"],input=("%s:%s\n"%(user,p1)).encode())
+sh("sudo -n sh -c 'rm -f /etc/ssh/sshd_config.d/05-live.conf; systemctl restart ssh'")
+msg(None,t2("Password changed.","Passwort geändert."))

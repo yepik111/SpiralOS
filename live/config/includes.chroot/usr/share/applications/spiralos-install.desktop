@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install SpiralOS (guide)
+Name[de]=SpiralOS installieren (Assistent)
+Comment=Check this PC and start the installer
+Exec=spiralos-install
+Icon=spiralos-install
+Categories=System;
+Terminal=false

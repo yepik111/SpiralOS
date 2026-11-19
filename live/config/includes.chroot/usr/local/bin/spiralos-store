@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+import sys, shlex; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+w=win(t2("Software center","Software-Center"),780,620); box=Gtk.VBox(spacing=6,margin=8); w.add(box)
+hb=Gtk.HBox(spacing=6); box.pack_start(hb,False,False,0)
+q=Gtk.Entry(hexpand=True); src=Gtk.ComboBoxText(); src.append_text("Packages (APT)"); src.append_text("Flatpak (Flathub)"); src.set_active(0)
+ls=Gtk.ListStore(str,str); tv=Gtk.TreeView(model=ls)
+for i,n in enumerate(("Name",t2("Description","Beschreibung"))): tv.append_column(Gtk.TreeViewColumn(n,Gtk.CellRendererText(),text=i))
+sw=Gtk.ScrolledWindow(); sw.add(tv); box.pack_start(sw,True,True,0); out=Out(120)
+def search():
+    ls.clear(); s=q.get_text().strip()
+    if not s: return
+    if src.get_active()==0:
+        for l in subprocess.run(["apt-cache","search",s],capture_output=True,text=True).stdout.splitlines()[:200]:
+            a,_,b=l.partition(" - "); ls.append([a,b])
+    else:
+        for l in subprocess.run(["flatpak","search","--columns=application,name",s],capture_output=True,text=True).stdout.splitlines()[:200]:
+            a,_,b=l.partition("\t"); ls.append([a,b])
+def sel():
+    m,i=tv.get_selection().get_selected(); return m[i][0] if i else None
+def install():
+    n=sel()
+    if not n: return
+    if src.get_active()==0: out.run("pkexec /usr/local/bin/spiralos-pack "+shlex.quote(n))
+    else: out.run("flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && flatpak install --user -y flathub "+shlex.quote(n))
+def remove():
+    n=sel()
+    if not n: return
+    out.run(("pkexec apt-get remove -y " if src.get_active()==0 else "flatpak uninstall --user -y ")+shlex.quote(n))
+q.connect("activate",lambda _e:search())
+for x in (q,src,button(t2("Search","Suchen"),search)): hb.pack_start(x,x is q,True,0)
+bb=Gtk.HBox(spacing=6); box.pack_start(bb,False,False,0)
+bb.pack_start(button(t2("Install","Installieren"),install),False,False,0); bb.pack_start(button(t2("Remove","Entfernen"),remove),False,False,0)
+box.pack_end(out,False,False,0); run_app(w)

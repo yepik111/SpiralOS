@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Claude (Web)
+Name[de]=Claude (Web)
+Comment=Open claude.ai
+Exec=spiralos-claude web
+Icon=web-browser
+Categories=Network;Utility;
+Terminal=false

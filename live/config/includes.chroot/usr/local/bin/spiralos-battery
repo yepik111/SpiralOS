@@ -1,0 +1,7 @@
+#!/bin/sh
+B=$(ls -d /sys/class/power_supply/BAT* 2>/dev/null | head -n1)
+[ -n "$B" ] || { echo "No battery found."; exit 0; }
+echo "Charge: $(cat "$B/capacity")%  Status: $(cat "$B/status")"
+if [ -f "$B/energy_full" ] && [ -f "$B/energy_full_design" ]; then echo "Health: $(( 100*$(cat "$B/energy_full")/$(cat "$B/energy_full_design") ))% of design capacity"; fi
+command -v tlp-stat >/dev/null 2>&1 && sudo tlp-stat -b 2>/dev/null | head -n 20
+exit 0

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Willkommen
+Comment=Erste Schritte
+Exec=spiralos-welcome
+Icon=spiralos-welcome
+Categories=System;
+Terminal=false
