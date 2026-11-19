@@ -7,24 +7,35 @@ set -euo pipefail
 
 SRC="${SRC:-$(cd "$(dirname "$0")" && pwd)}"
 OUT="${OUT:-$SRC/out}"
-USE_IMAGE="${USE_IMAGE:-0}"   # 1 = Arbeitsdaten in ext4-Image unter $OUT
-IMG_GB="${IMG_GB:-20}"        # harte Obergrenze der Arbeitsdaten in GB
+USE_IMAGE="${USE_IMAGE:-0}"
+IMG_GB="${IMG_GB:-20}"
 
-[ "$(id -u)" = 0 ] || {
+# --------------------------------------------------
+# Root pruefen
+# --------------------------------------------------
+
+if [ "$(id -u)" != 0 ]; then
     echo "Bitte als root starten (sudo ./build.sh)"
     exit 1
-}
+fi
+
+# --------------------------------------------------
+# Ausgabe vorbereiten
+# --------------------------------------------------
 
 mkdir -p "$OUT"
 
 exec > >(tee -a "$OUT/build.log") 2>&1
 
-echo "== SpiralOS-Build $(date) =="
+echo "=========================================="
+echo " SpiralOS Build $(date)"
+echo "=========================================="
 
 # --------------------------------------------------
-# System aktualisieren und Build-Abhaengigkeiten
-# installieren
+# Debian aktualisieren
 # --------------------------------------------------
+
+export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 
@@ -36,10 +47,11 @@ apt-get install -y --no-install-recommends \
     mtools \
     dosfstools \
     e2fsprogs \
-    ca-certificates
+    ca-certificates \
+    python3
 
 # --------------------------------------------------
-# Arbeitsverzeichnis
+# Arbeitsverzeichnis vorbereiten
 # --------------------------------------------------
 
 W=/tmp/spiralos-build
@@ -50,10 +62,10 @@ mkdir -p "$W"
 IMG=""
 
 # --------------------------------------------------
-# Optional: Build in einem ext4-Image
+# Optionales Build-Image
 # --------------------------------------------------
 
-if [ "$USE_IMAGE" = 1 ]; then
+if [ "$USE_IMAGE" = "1" ]; then
 
     IMG="$OUT/spiralos-work.img"
 
@@ -74,13 +86,12 @@ if [ "$USE_IMAGE" = 1 ]; then
 
     else
 
-        echo "WARNUNG: Loop-Mount nicht moeglich."
-        echo "Baue ohne Image (belegt Platz im Docker-Speicher)."
+        echo "WARNUNG: Image konnte nicht gemountet werden."
+        echo "Build wird ohne Image fortgesetzt."
 
         rm -f "$IMG"
 
     fi
-
 fi
 
 # --------------------------------------------------
@@ -91,7 +102,10 @@ cp -r "$SRC/live/." "$W/"
 
 cd "$W"
 
-# Windows-Zeilenenden entfernen
+# --------------------------------------------------
+# Zeilenenden korrigieren
+# --------------------------------------------------
+
 find . -type f \
     \( \
         -path './auto/*' \
@@ -103,18 +117,28 @@ find . -type f \
     \) \
     -exec sed -i 's/\r$//' {} +
 
+# --------------------------------------------------
 # Skripte ausfuehrbar machen
-chmod +x auto/* config/hooks/live/* \
-    config/includes.chroot/usr/local/bin/*
+# --------------------------------------------------
+
+for f in auto/* config/hooks/live/* \
+    config/includes.chroot/usr/local/bin/*; do
+
+    [ -f "$f" ] || continue
+    chmod +x "$f"
+
+done
 
 # --------------------------------------------------
-# Update-Schluessel
+# Update-Schluessel pruefen
 # --------------------------------------------------
 
 if [ ! -f config/includes.chroot/usr/share/spiralos/update-key.gpg ]; then
-    echo "HINWEIS: kein Update-Schluessel"
-    echo "(tools/make-update-key)"
+
+    echo "HINWEIS: Kein Update-Schluessel vorhanden."
+    echo "tools/make-update-key ausfuehren."
     echo "Updates werden ungeprueft installiert."
+
 fi
 
 # --------------------------------------------------
@@ -122,60 +146,80 @@ fi
 # --------------------------------------------------
 
 # WICHTIG:
-# apt-get update wurde bereits oben ausgefuehrt.
 # Keine zweite Debian-Quelle anlegen!
+# apt-get update wurde bereits ausgefuehrt.
 # Dadurch wird der Signed-By-Konflikt vermieden.
 
 MISSING=""
 
-for L in config/package-lists/*.chroot; do
+shopt -s nullglob
+
+PACKAGE_LISTS=(config/package-lists/*.chroot)
+
+for L in "${PACKAGE_LISTS[@]}"; do
 
     [ -f "$L" ] || continue
 
-    while read -r p; do
+    TMP="$L.tmp"
+
+    while IFS= read -r p || [ -n "$p" ]; do
 
         case "$p" in
-            ''|\#*)
+            ""|\#*)
+                echo "$p" >> "$TMP"
                 continue
                 ;;
         esac
 
-        if ! apt-cache show "$p" >/dev/null 2>&1; then
+        if apt-cache show "$p" >/dev/null 2>&1; then
+
+            echo "$p" >> "$TMP"
+
+        else
 
             echo "WARNUNG: Paket '$p' nicht gefunden."
             echo "Paket wird uebersprungen."
 
             MISSING="$MISSING $p"
 
-            grep -vxF -- "$p" "$L" > "$L.tmp" || true
-
-            mv "$L.tmp" "$L"
-
         fi
 
     done < "$L"
 
+    mv "$TMP" "$L"
+
 done
 
-# Fehlende Pakete protokollieren
+# --------------------------------------------------
+# Fehlende Pakete speichern
+# --------------------------------------------------
+
 echo "$MISSING" > "$OUT/missing-packages.txt"
 
-# Bei zu vielen fehlenden Paketen abbrechen
-if [ "$(echo "$MISSING" | wc -w)" -gt 15 ]; then
+COUNT=$(echo "$MISSING" | wc -w)
 
-    echo "FEHLER: Zu viele Pakete nicht gefunden!"
-    echo "Vermutlich kein Internet oder Debian-Mirror nicht erreichbar."
-    echo "Build abgebrochen."
+if [ "$COUNT" -gt 15 ]; then
+
+    echo "FEHLER: Zu viele Pakete fehlen!"
+    echo "Moeglicherweise ist der Debian-Mirror nicht erreichbar."
 
     exit 1
 
 fi
 
 # --------------------------------------------------
-# live-build vorbereiten
+# live-build bereinigen
 # --------------------------------------------------
 
+echo "Bereinige live-build..."
+
 lb clean --purge || true
+
+# --------------------------------------------------
+# live-build konfigurieren
+# --------------------------------------------------
+
+echo "Konfiguriere SpiralOS..."
 
 lb config
 
@@ -183,13 +227,35 @@ lb config
 # ISO bauen
 # --------------------------------------------------
 
+echo "Starte ISO-Build..."
+
 lb build
 
 # --------------------------------------------------
-# ISO finden und kopieren
+# ISO suchen
 # --------------------------------------------------
 
-ISO=$(ls -1 *.iso | head -n1)
+ISO=""
+
+for f in *.iso; do
+
+    [ -f "$f" ] || continue
+
+    ISO="$f"
+    break
+
+done
+
+if [ -z "$ISO" ]; then
+
+    echo "FEHLER: Keine ISO-Datei gefunden!"
+    exit 1
+
+fi
+
+# --------------------------------------------------
+# ISO kopieren
+# --------------------------------------------------
 
 cp "$ISO" "$OUT/SpiralOS-1.0-amd64.iso"
 
@@ -205,27 +271,35 @@ cp "$ISO" "$OUT/SpiralOS-1.0-amd64.iso"
 )
 
 # --------------------------------------------------
-# Dateigroesse anzeigen
+# ISO-Groesse pruefen
 # --------------------------------------------------
 
 MB=$(du -m "$OUT/SpiralOS-1.0-amd64.iso" | cut -f1)
 
+# --------------------------------------------------
+# Build-Ergebnis
+# --------------------------------------------------
+
 echo
-echo "======================================"
+echo "=========================================="
 echo " SpiralOS Build abgeschlossen"
-echo "======================================"
+echo "=========================================="
 
 echo "ISO: $OUT/SpiralOS-1.0-amd64.iso"
 echo "Groesse: ${MB} MB"
-
-if [ "$MB" -le 10240 ]; then
-    echo "ISO-Groesse: OK"
-else
-    echo "WARNUNG: ISO ist groesser als 10 GB."
-fi
-
 echo "SHA256: $OUT/SpiralOS-1.0-amd64.iso.sha256"
 
-echo "======================================"
-echo "Fertig!"
+if [ "$MB" -le 10240 ]; then
+
+    echo "ISO-Groesse: OK"
+
+else
+
+    echo "WARNUNG: ISO ist groesser als 10 GB."
+
+fi
+
+echo "=========================================="
+echo " BUILD ERFOLGREICH"
+echo "=========================================="
 ```
