@@ -32,8 +32,8 @@ done
 for r in $(grep -ohE 'spiralos-[a-z]+' "$B/spiralos-center" "$B/spiralos-welcome" "$B/spiralos-help" | sort -u); do
   [ -f "$B/$r" ] || echo "$r" | grep -qE '^spiralos-(live|ssh|autoclean|firewall|postinstall|eventd)$' || bad "Verweis auf fehlendes Programm: $r"
 done
-for y in .github/workflows/*.yml tools/*.yml; do python3 -c "import yaml,sys;yaml.safe_load(open('$y'))" 2>/dev/null && ok || bad "YAML: $y"; done
-for f in *.bat tools/*.bat; do grep -q $'\r' "$f" && ok || bad "kein Windows-Zeilenende (CRLF): $f"; done
+if python3 -c "import yaml" 2>/dev/null; then for y in .github/workflows/*.yml tools/*.yml; do [ -f "$y" ] || continue; python3 -c "import yaml;yaml.safe_load(open('$y'))" 2>/dev/null && ok || bad "YAML: $y"; done; fi
+for f in *.bat tools/*.bat; do [ -f "$f" ] || continue; grep -q $'\r' "$f" && ok || bad "kein Windows-Zeilenende (CRLF): $f"; done
 if grep -rIil 'debian\|ubuntu' "$I" --exclude-dir=doc --exclude-dir=man >/tmp/brand.$$ 2>/dev/null && [ -s /tmp/brand.$$ ]; then bad "Fremde Markennamen in der Oberflaeche: $(tr '\n' ' ' </tmp/brand.$$)"; else ok; fi
 for f in $I/usr/share/icons/SpiralOS/scalable/apps/*.svg; do grep -q '<svg' "$f" && ok || bad "Icon: $f"; done
 echo "Selbsttest: $PASS bestanden, $FAIL Fehler"

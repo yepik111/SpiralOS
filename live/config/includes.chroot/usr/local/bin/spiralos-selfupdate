@@ -60,6 +60,7 @@ case "$1" in
     done
     cp -a "$T/rootfs/." /
     chmod +x /usr/local/bin/spiralos-* /usr/local/bin/execdotece 2>/dev/null
+    chmod 0440 /etc/sudoers.d/spiralos-* 2>/dev/null
     [ -f "$T/update.sh" ] && sh "$T/update.sh"
     ln -sfn "$BK" /var/backups/spiralos/last; echo "$CUR" > /var/backups/spiralos/last.version
     echo "$V" > /etc/spiralos-version

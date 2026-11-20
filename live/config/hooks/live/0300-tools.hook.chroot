@@ -1,5 +1,6 @@
 #!/bin/sh
 chmod +x /usr/local/bin/*
+chmod 0440 /etc/sudoers.d/spiralos-crashlog 2>/dev/null
 cat >> /etc/skel/.bashrc <<'EOT'
 
 # SpiralOS

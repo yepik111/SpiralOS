@@ -22,5 +22,7 @@ SpiralOS commands:
   spiralos-docs [name]                 handbooks;  man spiralos-<command> for each command
   spiralos-install-check, spiralos-install   check this PC / installation guide (live system)
   spiralos-sound on|off|test                login sound
+  spiralos-flash on|off|status               flash mode: logs only in RAM, written to disk only on a crash (SD cards)
+  spiralos-crashlog <type>                   (internal) writes one crash report to /var/lib/spiralos/crashlogs
 Apps: spiralos-edit, -view, -archive (editor, images, archives), spiralos-center, -settings, -store, -search, -shot, -pass, -backupplan, -monitor, -notes, -calc
 EOT

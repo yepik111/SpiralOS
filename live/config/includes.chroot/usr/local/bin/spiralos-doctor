@@ -12,5 +12,6 @@ for s in NetworkManager ssh lightdm; do systemctl is-active --quiet $s && ok "$(
 [ "$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)" -gt 300 ] && ok RAM || bad "$(m ram_bad)"
 swapon --show 2>/dev/null | grep -q zram && ok ZRAM || bad "ZRAM: -"
 systemctl is-active --quiet fail2ban && ok fail2ban || bad "$(m svc_bad fail2ban)"
+[ -f /etc/spiralos-flash ] && ok "Flash mode (logs in RAM)" || echo "[ i ] Flash mode off: spiralos-flash on"
 SB=$(mokutil --sb-state 2>/dev/null | head -n1); [ -n "$SB" ] && ok "$SB"
 spiralos-selfupdate check >/dev/null 2>&1; [ $? = 10 ] && bad "$(m upd_avail)" || ok "$(m upd_ok "$(spiralos-selfupdate version)")"

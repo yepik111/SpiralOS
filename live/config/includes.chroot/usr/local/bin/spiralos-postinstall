@@ -7,5 +7,6 @@ systemctl disable spiralos-live-ssh.service >/dev/null 2>&1
 [ -f /etc/spiralos-version ] || echo 1.0.0 > /etc/spiralos-version
 fc-cache -f >/dev/null 2>&1
 /usr/local/bin/spiralos-snapshot create "fresh install" >/dev/null 2>&1
+[ -f /etc/spiralos-flash ] || /usr/local/bin/spiralos-flash on >/dev/null 2>&1
 touch "$D/postinstall-done"
 exit 0

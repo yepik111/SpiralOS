@@ -17,10 +17,11 @@ _spiralos_complete() {
     spiralos-reset) o="user" ;;
     spiralos-claude) o="install doctor web" ;;
     spiralos-doctor) o="fix" ;;
+    spiralos-flash) o="on off status" ;;
     spiralos-sound) o="on off test" ;;
     spiralos-profile) o="list show apply standard developer gaming privacy minimal" ;;
-    spiralos-docs) o="list INSTALLATION BENUTZERHANDBUCH FEHLERSUCHE THIRD-PARTY COMMANDS" ;;
+    spiralos-docs) o="list INSTALLATION BENUTZERHANDBUCH FEHLERSUCHE SD-KARTE THIRD-PARTY COMMANDS" ;;
   esac
   COMPREPLY=($(compgen -W "$o" -- "$w"))
 }
-complete -F _spiralos_complete spiralos-selfupdate spiralos-snapshot spiralos-ssh spiralos-firewall spiralos-pack spiralos-language spiralos-crash spiralos-services spiralos-users spiralos-timezone spiralos-host spiralos-usb spiralos-log spiralos-reset spiralos-claude spiralos-doctor spiralos-profile spiralos-docs spiralos-sound
+complete -F _spiralos_complete spiralos-selfupdate spiralos-snapshot spiralos-ssh spiralos-firewall spiralos-pack spiralos-language spiralos-crash spiralos-services spiralos-users spiralos-timezone spiralos-host spiralos-usb spiralos-log spiralos-reset spiralos-claude spiralos-doctor spiralos-profile spiralos-docs spiralos-sound spiralos-flash

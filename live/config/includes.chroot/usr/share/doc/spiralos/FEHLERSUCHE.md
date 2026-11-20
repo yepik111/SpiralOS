@@ -17,3 +17,5 @@
 | Akku leer zu schnell | `spiralos-battery`, Profil `minimal`. |
 | Crash-Bildschirme testen | `spiralos-crash test oom` (Typen: oom disk panic heat battery app fs gpu net update driver). |
 | Fehlerberichte | Liegen in `~/crashlogs`. |
+| Wo sind Protokolle? | Im Schonmodus nur im RAM. Nach einem Absturz: `/var/lib/spiralos/crashlogs`. Live-Ansicht: `spiralos-log errors`. |
+| Programm meldet fehlendes Log-Verzeichnis | `sudo mkdir -p /var/log/<name>`, oder Schonmodus aus: `sudo spiralos-flash off` und neu starten. |

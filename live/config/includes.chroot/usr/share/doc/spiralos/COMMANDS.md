@@ -14,6 +14,7 @@ Automatisch erzeugt (`python3 tools/make-man.py`). Zu jedem Befehl gibt es `man 
 | `spiralos-claude` | `spiralos-claude` | Claude Code fuer SpiralOS: spiralos-claude [install\|doctor\|web\|<claude-argumente>] |
 | `spiralos-clean` | `spiralos-clean` | SpiralOS-Programm |
 | `spiralos-crash` | `spiralos-crash <typ> [detail]  \|  spiralos-crash test <typ>` | spiralos-crash <typ> [detail]  \|  spiralos-crash test <typ> |
+| `spiralos-crashlog` | `spiralos-crashlog <typ> [detail]` | schreibt bei einem Absturz EINEN Bericht aus dem RAM-Protokoll auf die Platte (max. 20 Berichte) |
 | `spiralos-crashwatch` | `spiralos-crashwatch` | Ueberwacht das System und zeigt Absturz-Bildschirme (laeuft in der Sitzung) |
 | `spiralos-disk` | `spiralos-disk [pfad]` | Belegung, groesste Ordner, Festplatten-Gesundheit |
 | `spiralos-docs` | `spiralos-docs [list\|<name>]` | Handbuecher lesen (INSTALLATION, BENUTZERHANDBUCH, FEHLERSUCHE, THIRD-PARTY, COMMANDS) |
@@ -23,6 +24,7 @@ Automatisch erzeugt (`python3 tools/make-man.py`). Zu jedem Befehl gibt es `man 
 | `spiralos-eventd` | `spiralos-eventd` | Root-Dienst: liest das Kernel-Log und meldet Ereignisse an die Sitzung |
 | `spiralos-firewall` | `spiralos-firewall` | SpiralOS-Programm |
 | `spiralos-firstlogin` | `spiralos-firstlogin` | SpiralOS-Programm |
+| `spiralos-flash` | `spiralos-flash on\|off\|status` | Schonmodus fuer SD-Karten/SSDs. Protokolle nur im RAM, nur bei Abstuerzen auf die Platte. |
 | `spiralos-hardware` | `spiralos-hardware` | Hardware-Assistent: erkennt Geraete und bietet Treiber/Pakete an |
 | `spiralos-healthcheck` | `spiralos-healthcheck` | Unsichtbarer Gesundheitscheck kurz nach dem Login: meldet Probleme per Benachrichtigung |
 | `spiralos-help` | `spiralos-help` | SpiralOS-Programm |

@@ -1,0 +1,17 @@
+#!/bin/sh
+# spiralos-crashlog <typ> [detail]: schreibt bei einem Absturz EINEN Bericht aus dem RAM-Protokoll auf die Platte (max. 20 Berichte)
+T=$(printf %s "${1:-unknown}" | tr -cd 'a-z' | cut -c1-12); [ -n "$T" ] || T=unknown
+D="${CRASHLOG_DIR:-/var/lib/spiralos/crashlogs}"; mkdir -p "$D"
+last=$(ls -1t "$D"/crash-"$T"-* 2>/dev/null | head -n1)
+if [ -n "$last" ] && [ $(( $(date +%s) - $(stat -c %Y "$last") )) -lt 60 ]; then exit 0; fi
+F="$D/crash-$T-$(date +%Y%m%d-%H%M%S).log"
+{
+  echo "SpiralOS crash report: $T"; date; echo "Detail: $(printf %s "$2" | tr -d '\r' | cut -c1-300)"; echo
+  uname -r; uptime; echo; free -m; df -h / /tmp 2>/dev/null; echo
+  echo "--- failed services"; systemctl --failed --no-pager --no-legend 2>&1; echo
+  echo "--- processes by memory"; ps -eo pid,comm,%mem,%cpu --sort=-%mem | head -n 12; echo
+  echo "--- journal (RAM, last 300 lines)"; journalctl -b -n 300 --no-pager 2>&1
+} > "$F" 2>&1
+chmod 600 "$F"
+ls -1t "$D"/crash-* 2>/dev/null | tail -n +21 | while read -r x; do rm -f "$x"; done
+exit 0

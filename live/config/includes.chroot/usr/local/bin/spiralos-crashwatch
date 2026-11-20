@@ -5,7 +5,7 @@ cool={}; ev="/run/spiralos/events"; pos=os.path.getsize(ev) if os.path.exists(ev
 def show(t,d=""):
     n=time.time()
     if n-cool.get(t,0)<180: return
-    cool[t]=n; subprocess.Popen(["spiralos-crash",t,d])
+    cool[t]=n; subprocess.Popen(["sudo","-n","/usr/local/bin/spiralos-crashlog",t,d],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.Popen(["spiralos-crash",t,d])
 def net_up():
     return any(open(p).read().strip()=="up" for p in glob.glob("/sys/class/net/*/operstate") if "/lo/" not in p)
 while True:

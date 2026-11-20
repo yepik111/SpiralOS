@@ -17,6 +17,7 @@ def smart():
                 r=subprocess.run(["smartctl","-H","/dev/"+d],capture_output=True,text=True).stdout
                 if "FAILED" in r:
                     with open("/run/spiralos/events","a") as f: f.write("fs|SMART health check FAILED: /dev/%s\n"%d)
+                    subprocess.Popen(["/usr/local/bin/spiralos-crashlog","fs","SMART health check FAILED: /dev/"+d])
         time.sleep(3600)
 threading.Thread(target=smart,daemon=True).start()
 p=subprocess.Popen(["journalctl","-k","-f","-n0","-o","cat"],stdout=subprocess.PIPE,text=True)
@@ -28,3 +29,4 @@ for l in p.stdout:
             d=m.group(1) if t in ("oom","app") else l.strip()[:200]
             if t=="oom": d="Killed: "+d
             with open("/run/spiralos/events","a") as f: f.write("%s|%s\n"%(t,d))
+            subprocess.Popen(["/usr/local/bin/spiralos-crashlog",t,d])
