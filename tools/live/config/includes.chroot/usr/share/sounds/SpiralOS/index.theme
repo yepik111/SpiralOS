@@ -1,0 +1,8 @@
+[Sound Theme]
+Name=SpiralOS
+Comment=SpiralOS sounds
+Directories=stereo
+Inherits=freedesktop
+
+[stereo]
+OutputProfile=stereo

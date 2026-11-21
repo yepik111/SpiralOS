@@ -76,7 +76,7 @@ systemd-zram-generator
 systemd-timesyncd
 unattended-upgrades
 fail2ban
-xfce4-screensaver
+light-locker
 tlp
 blueman
 fonts-noto-core

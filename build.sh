@@ -37,10 +37,12 @@ elif [ -f /etc/apt/sources.list ]; then
 fi
 apt-get update
 MISSING=""
+# "Installierbar" heisst: es gibt eine Version, die man holen kann (nicht nur ein Verweis aus anderen Paketen)
+has_candidate() { local c; c=$(apt-cache policy "$1" 2>/dev/null | awk '/Candidate:/{print $2; exit}'); [ -n "$c" ] && [ "$c" != "(none)" ]; }
 for L in config/package-lists/*.chroot; do
   while read -r p; do
     case "$p" in ''|\#*) continue ;; esac
-    if ! apt-cache show "$p" >/dev/null 2>&1; then
+    if ! has_candidate "$p"; then
       echo "WARNUNG: Paket '$p' nicht gefunden, wird uebersprungen."; MISSING="$MISSING $p"
       grep -vxF -- "$p" "$L" > "$L.tmp" && mv "$L.tmp" "$L"
     fi
@@ -48,6 +50,11 @@ for L in config/package-lists/*.chroot; do
 done
 echo "$MISSING" > "$OUT/missing-packages.txt"
 if [ "$(echo $MISSING | wc -w)" -gt 15 ]; then echo "FEHLER: zu viele Pakete nicht gefunden - vermutlich kein Internet oder Debian-Mirror nicht erreichbar. Build abgebrochen."; exit 1; fi
+# Vorab pruefen, ob die ganze Paketauswahl zusammen installierbar ist (findet Konflikte in Sekunden statt nach 20 Minuten)
+ALL=$(cat config/package-lists/*.chroot | grep -vE '^(#|$)' | sort -u | tr '\n' ' ')
+echo "Pruefe, ob die Paketauswahl zusammen installierbar ist ..."
+if ! apt-get -s install $ALL > /tmp/sim.log 2>&1; then echo "FEHLER: Paketauswahl ist nicht installierbar:"; tail -n 40 /tmp/sim.log; exit 1; fi
+echo "Paketauswahl ok."
 lb clean --purge || true
 lb config
 lb build
