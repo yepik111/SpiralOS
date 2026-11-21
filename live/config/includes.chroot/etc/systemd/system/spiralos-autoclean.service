@@ -1,0 +1,5 @@
+[Unit]
+Description=SpiralOS woechentliche Bereinigung
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'apt-get -y clean; journalctl --vacuum-size=100M'

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Passwords
+Name[de]=Passwörter
+Comment=Encrypted password manager
+Exec=spiralos-pass
+Icon=spiralos-pass
+Categories=Utility;
+Terminal=false

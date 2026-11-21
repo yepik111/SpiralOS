@@ -1,0 +1,17 @@
+#!/bin/sh
+# spiralos-install-check: prueft den PC, bevor SpiralOS installiert wird
+ok() { echo "[ OK ] $*"; }; warn() { echo "[ !  ] $*"; }; bad() { echo "[FEHLER] $*"; }
+[ -d /run/live ] && ok "Live-System laeuft (bereit zum Installieren)" || warn "Kein Live-System: du bist schon installiert."
+RAM=$(awk '/MemTotal/{printf "%d",$2/1024}' /proc/meminfo)
+if [ "$RAM" -ge 3500 ]; then ok "RAM: $RAM MB"; elif [ "$RAM" -ge 1800 ]; then warn "RAM: $RAM MB (mind. 2 GB, empfohlen 4 GB)"; else bad "RAM: $RAM MB (zu wenig)"; fi
+MAX=$(lsblk -bdno SIZE,TYPE 2>/dev/null | awk '$2=="disk"{if($1>m)m=$1}END{printf "%d",m/1073741824}')
+[ "${MAX:-0}" -ge 25 ] && ok "Groesste Festplatte: $MAX GB" || bad "Keine Festplatte mit mind. 25 GB gefunden"
+echo "Festplatten:"; lsblk -dno NAME,SIZE,MODEL,TYPE 2>/dev/null | awk '$NF=="disk"{print "  /dev/"$0}'
+[ -d /sys/firmware/efi ] && ok "UEFI-Start" || warn "BIOS/Legacy-Start (funktioniert; UEFI wird empfohlen)"
+V=$(systemd-detect-virt 2>/dev/null); [ -n "$V" ] && [ "$V" != none ] && ok "Laeuft in einer virtuellen Maschine ($V)"
+ping -c1 -W2 1.1.1.1 >/dev/null 2>&1 && ok "Internet verfuegbar (fuer Updates)" || warn "Kein Internet (Installation geht trotzdem)"
+SB=$(mokutil --sb-state 2>/dev/null | head -n1); case "$SB" in *enabled*) warn "Secure Boot ist AN: das installierte System unterstuetzt es, das Live-System evtl. nicht" ;; esac
+B=$(ls -d /sys/class/power_supply/BAT* 2>/dev/null | head -n1); [ -n "$B" ] && [ "$(cat /sys/class/power_supply/AC*/online 2>/dev/null | head -n1)" != 1 ] && warn "Notebook laeuft im Akkubetrieb: Netzteil anschliessen"
+echo; echo "Vor dem Installieren: wichtige Daten sichern. Der Installer kann Festplatten loeschen."
+echo "Tipp: Waehle im Installer 'Festplatte loeschen' und aktiviere 'Verschluesseln', wenn dein Geraet geklaut werden koennte."
+exit 0

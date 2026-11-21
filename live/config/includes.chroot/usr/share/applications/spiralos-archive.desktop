@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Archives
+Name[de]=Archive
+Comment=Open, extract and create archives
+Exec=spiralos-archive %F
+Icon=spiralos-archive
+Categories=Utility;Archiving;
+MimeType=application/zip;application/x-tar;application/gzip;application/x-compressed-tar;application/x-bzip-compressed-tar;application/x-xz-compressed-tar;application/x-7z-compressed;
+Terminal=false

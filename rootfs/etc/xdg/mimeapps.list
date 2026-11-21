@@ -1,0 +1,18 @@
+[Default Applications]
+text/plain=spiralos-edit.desktop
+text/markdown=spiralos-edit.desktop
+text/x-python=spiralos-edit.desktop
+application/x-shellscript=spiralos-edit.desktop
+application/json=spiralos-edit.desktop
+image/png=spiralos-view.desktop
+image/jpeg=spiralos-view.desktop
+image/gif=spiralos-view.desktop
+image/bmp=spiralos-view.desktop
+image/webp=spiralos-view.desktop
+image/svg+xml=spiralos-view.desktop
+image/tiff=spiralos-view.desktop
+application/zip=spiralos-archive.desktop
+application/x-tar=spiralos-archive.desktop
+application/gzip=spiralos-archive.desktop
+application/x-compressed-tar=spiralos-archive.desktop
+application/x-7z-compressed=spiralos-archive.desktop

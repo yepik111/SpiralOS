@@ -1,0 +1,28 @@
+#!/bin/sh
+cat <<'EOT'
+SpiralOS commands:
+  spiralos-info / -doctor / -update / -clean     info, diagnostics, update, clean up
+  spiralos-selfupdate check|install|rollback|channel|changelog   GitHub updater
+  spiralos-snapshot create|list|restore          system snapshots (also automatic before updates)
+  spiralos-backup, spiralos-persist              backups, USB persistence
+  spiralos-pack <name>                           install packs (buero medien entwicklung netzwerk spiele gaming virtualisierung drucker fingerabdruck nvidia firmware)
+  spiralos-ssh, spiralos-firewall, spiralos-net  SSH, firewall, network
+  spiralos-hardware                              hardware assistant
+  spiralos-language <code>                       language and keyboard (en de es fr pt ru zh ja ar hi tr it pl ko)
+  spiralos-emergency                             emergency console
+  spiralos-crash test <type>                     crash screens (oom disk panic heat battery app fs gpu net update driver)
+  spiralos-claude [install|doctor|web]            Claude Code (needs a Claude account)
+  execdotece <file.exe>                          run Windows programs
+  spiralos-disk, -services, -users, -timezone, -host   disk usage, services, users, time zone, hostname
+  spiralos-battery, -speedtest, -weather, -timer       battery, speed test, weather, timers
+  spiralos-sync, -usb, -share, -sandbox, -log          rsync backups, safe USB eject, file sharing, isolation, logs
+  spiralos-reset user, spiralos-doctor fix             reset desktop settings, repair common problems
+  Shortcuts: Ctrl+Alt+Del power menu, Print screenshot, Super+T terminal, Super+E files, Super+L lock
+  spiralos-profile list|apply <name>   profiles (standard developer gaming privacy minimal)
+  spiralos-docs [name]                 handbooks;  man spiralos-<command> for each command
+  spiralos-install-check, spiralos-install   check this PC / installation guide (live system)
+  spiralos-sound on|off|test                login sound
+  spiralos-flash on|off|status               flash mode: logs only in RAM, written to disk only on a crash (SD cards)
+  spiralos-crashlog <type>                   (internal) writes one crash report to /var/lib/spiralos/crashlogs
+Apps: spiralos-edit, -view, -archive (editor, images, archives), spiralos-center, -settings, -store, -search, -shot, -pass, -backupplan, -monitor, -notes, -calc
+EOT

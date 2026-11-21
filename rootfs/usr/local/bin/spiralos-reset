@@ -1,0 +1,10 @@
+#!/bin/sh
+# spiralos-reset user: Oberflaeche (Desktop-Einstellungen) zuruecksetzen, Dateien bleiben
+case "$1" in
+  user)
+    T=$(date +%s); BK="$HOME/.config/spiralos-backup-$T"; mkdir -p "$BK"
+    for d in xfce4 gtk-3.0 Thunar; do [ -e "$HOME/.config/$d" ] && mv "$HOME/.config/$d" "$BK/"; done
+    rm -f "$HOME/.config/spiralos/firstlogin"
+    echo "Reset done. Backup: $BK. Log out and in again." ;;
+  *) echo "Usage: spiralos-reset user" ;;
+esac

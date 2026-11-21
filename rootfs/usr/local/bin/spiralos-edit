@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+# spiralos-edit [datei ...]: Texteditor mit Tabs, Suchen/Ersetzen und Zoom
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+from gi.repository import Pango
+w=win("SpiralOS "+t2("Editor","Editor"),860,620); box=Gtk.VBox(); w.add(box)
+bar=Gtk.HBox(spacing=6,margin=6); box.pack_start(bar,False,False,0)
+nb=Gtk.Notebook(scrollable=True); box.pack_start(nb,True,True,0)
+fe=Gtk.Entry(placeholder_text=t2("Find","Suchen"),width_chars=14); re_=Gtk.Entry(placeholder_text=t2("Replace","Ersetzen"),width_chars=14)
+st=Gtk.Label(xalign=0,margin=4); box.pack_end(st,False,False,0)
+D={}; SZ=[11]
+def lab(path,mod=False): return ("* " if mod else "")+(os.path.basename(path) if path else t2("Untitled","Unbenannt"))
+def font(v): v.override_font(Pango.FontDescription("Monospace %d"%SZ[0]))
+def new(path=None):
+    sw=Gtk.ScrolledWindow(); v=Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD,left_margin=8,right_margin=8,top_margin=8); sw.add(v); D[sw]=[v,path]
+    if path:
+        try: v.get_buffer().set_text(open(path,encoding="utf-8",errors="replace").read())
+        except Exception as e: st.set_text(str(e))
+    b=v.get_buffer(); b.set_modified(False); l=Gtk.Label(label=lab(path)); font(v)
+    b.connect("modified-changed",lambda bb:l.set_text(lab(D[sw][1],bb.get_modified())))
+    D[sw].append(l); nb.append_page(sw,l); sw.show_all(); nb.set_current_page(-1)
+def cur():
+    i=nb.get_current_page(); sw=nb.get_nth_page(i) if i>=0 else None; return (sw,)+tuple(D[sw][:2]) if sw else (None,None,None)
+def chooser(save):
+    d=Gtk.FileChooserDialog(title="",transient_for=w,action=Gtk.FileChooserAction.SAVE if save else Gtk.FileChooserAction.OPEN); d.add_buttons("Cancel",0,"OK",1)
+    r=d.run(); p=d.get_filename() if r==1 else None; d.destroy(); return p
+def opn():
+    p=chooser(False)
+    if p: new(p)
+def save(as_=False):
+    sw,v,p=cur()
+    if not v: return
+    if as_ or not p: p=chooser(True)
+    if not p: return
+    b=v.get_buffer()
+    try: open(p,"w",encoding="utf-8").write(b.get_text(b.get_start_iter(),b.get_end_iter(),True)); D[sw][1]=p; b.set_modified(False); D[sw][2].set_text(lab(p)); st.set_text(t2("Saved","Gespeichert")+": "+p)
+    except Exception as e: st.set_text(str(e))
+def close():
+    sw,v,p=cur()
+    if sw: D.pop(sw); nb.remove_page(nb.page_num(sw))
+    if not D: new()
+def find():
+    sw,v,p=cur()
+    if not v or not fe.get_text(): return
+    b=v.get_buffer(); it=b.get_iter_at_mark(b.get_insert()); r=it.forward_search(fe.get_text(),Gtk.TextSearchFlags.CASE_INSENSITIVE,None) or b.get_start_iter().forward_search(fe.get_text(),Gtk.TextSearchFlags.CASE_INSENSITIVE,None)
+    if r: b.select_range(r[1],r[0]); v.scroll_to_iter(r[0],0.1,False,0,0); st.set_text("")
+    else: st.set_text(t2("Not found","Nicht gefunden"))
+def replace_all():
+    sw,v,p=cur()
+    if not v or not fe.get_text(): return
+    b=v.get_buffer(); t=b.get_text(b.get_start_iter(),b.get_end_iter(),True); n=t.count(fe.get_text()); b.set_text(t.replace(fe.get_text(),re_.get_text())); st.set_text("%d x"%n)
+def zoom(d):
+    SZ[0]=max(6,min(40,SZ[0]+d))
+    for k in D: font(D[k][0])
+for n,c in ((t2("New","Neu"),new),(t2("Open","Öffnen"),opn),(t2("Save","Speichern"),save),(t2("Save as","Speichern unter"),lambda:save(True)),(t2("Close tab","Tab schließen"),close)): bar.pack_start(button(n,c),False,False,0)
+bar.pack_start(fe,False,False,0); bar.pack_start(button(t2("Find","Suchen"),find),False,False,0); bar.pack_start(re_,False,False,0); bar.pack_start(button(t2("Replace all","Alle ersetzen"),replace_all),False,False,0)
+bar.pack_start(button("A+",lambda:zoom(1)),False,False,0); bar.pack_start(button("A-",lambda:zoom(-1)),False,False,0)
+fe.connect("activate",lambda e:find())
+def key(_w,e):
+    if e.state&Gdk.ModifierType.CONTROL_MASK:
+        k=Gdk.keyval_name(e.keyval)
+        if k=="s": save(); return True
+        if k=="o": opn(); return True
+        if k=="n": new(); return True
+        if k=="f": fe.grab_focus(); return True
+    return False
+w.connect("key-press-event",key)
+def quit_(_w,_e):
+    if any(D[k][0].get_buffer().get_modified() for k in D):
+        d=Gtk.MessageDialog(transient_for=w,message_type=Gtk.MessageType.QUESTION,buttons=Gtk.ButtonsType.YES_NO,text=t2("Discard unsaved changes?","Ungespeicherte Änderungen verwerfen?")); r=d.run(); d.destroy(); return r!=Gtk.ResponseType.YES
+    return False
+w.connect("delete-event",quit_)
+for f in sys.argv[1:]: new(os.path.abspath(f))
+if not D: new()
+run_app(w)

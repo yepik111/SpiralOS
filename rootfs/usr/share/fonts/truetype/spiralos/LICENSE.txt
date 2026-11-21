@@ -1,0 +1,2 @@
+Spiral Sans - Copyright (c) 2026 SpiralOS.
+Fuer SpiralOS erstellt (tools/make-font.py). Frei nutzbar und veraenderbar.

@@ -1,0 +1,16 @@
+#!/bin/sh
+rm -f /etc/os-release
+cat > /usr/lib/os-release <<'EOT'
+PRETTY_NAME="SpiralOS 1.0 (Helix)"
+NAME="SpiralOS"
+VERSION_ID="1.0"
+VERSION="1.0 (Helix)"
+VERSION_CODENAME=helix
+ID=spiralos
+ID_LIKE=debian
+EOT
+ln -sf ../usr/lib/os-release /etc/os-release
+printf 'SpiralOS 1.0 (Helix) \\n \\l\n\n' > /etc/issue
+printf 'SpiralOS 1.0 (Helix)\n' > /etc/issue.net
+printf '\nWillkommen bei SpiralOS.\n\n' > /etc/motd
+exit 0

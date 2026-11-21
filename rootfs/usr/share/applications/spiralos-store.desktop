@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Software Center
+Name[de]=Software-Center
+Comment=Install and remove programs
+Exec=spiralos-store
+Icon=spiralos-store
+Categories=System;PackageManager;
+Terminal=false

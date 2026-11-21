@@ -1,0 +1,10 @@
+#!/bin/sh
+# spiralos-log errors|boot|today|live|service <name>
+case "$1" in
+  ""|errors) journalctl -p 3 -b --no-pager | tail -n 60 ;;
+  boot) journalctl -b --no-pager | tail -n 100 ;;
+  today) journalctl --since today -p 4 --no-pager | tail -n 100 ;;
+  live) journalctl -f ;;
+  service) journalctl -u "$2" -b --no-pager | tail -n 80 ;;
+  *) echo "Usage: spiralos-log errors|boot|today|live|service <name>" ;;
+esac

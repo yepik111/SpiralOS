@@ -1,0 +1,23 @@
+#!/bin/sh
+# spiralos-language <code> : Systemsprache und Tastatur umstellen
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+case "$1" in
+  en) L=en_US; K=us ;; de) L=de_DE; K=de ;; es) L=es_ES; K=es ;; fr) L=fr_FR; K=fr ;; pt) L=pt_BR; K=br ;;
+  ru) L=ru_RU; K=ru ;; zh) L=zh_CN; K=cn ;; ja) L=ja_JP; K=jp ;; ar) L=ar_EG; K=ara ;; hi) L=hi_IN; K=in ;;
+  tr) L=tr_TR; K=tr ;; it) L=it_IT; K=it ;; pl) L=pl_PL; K=pl ;; ko) L=ko_KR; K=kr ;;
+  *) echo "Usage: spiralos-language en|de|es|fr|pt|ru|zh|ja|ar|hi|tr|it|pl|ko"; exit 0 ;;
+esac
+sed -i "s/^# *$L\.UTF-8/$L.UTF-8/" /etc/locale.gen; locale-gen >/dev/null
+update-locale LANG=$L.UTF-8 LANGUAGE=$L
+sed -i "s/^XKBLAYOUT=.*/XKBLAYOUT=\"$K\"/" /etc/default/keyboard
+setupcon >/dev/null 2>&1 || true
+U="${SUDO_USER:-}"
+if [ -n "$U" ] && [ -d "/home/$U" ]; then
+  mkdir -p "/home/$U/.config/spiralos"
+  case "$1" in
+    zh|ja|ko) touch "/home/$U/.config/spiralos/ime"; printf 'export GTK_IM_MODULE=ibus\nexport QT_IM_MODULE=ibus\nexport XMODIFIERS=@im=ibus\n' > "/home/$U/.xprofile" ;;
+    *) rm -f "/home/$U/.config/spiralos/ime" "/home/$U/.xprofile" ;;
+  esac
+  chown -R "$U" "/home/$U/.config/spiralos" 2>/dev/null; [ -f "/home/$U/.xprofile" ] && chown "$U" "/home/$U/.xprofile"
+fi
+echo "OK: $L.UTF-8, keyboard $K. Log out and in again / Neu anmelden."

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Updatepruefung
+Exec=spiralos-updatecheck
+NoDisplay=true

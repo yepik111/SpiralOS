@@ -1,0 +1,23 @@
+#!/bin/sh
+# Claude Code fuer SpiralOS: spiralos-claude [install|doctor|web|<claude-argumente>]
+# Ohne Argument: startet Claude Code und installiert es bei Bedarf (nach Rueckfrage) mit dem offiziellen Installer.
+URL="https://claude.ai/install.sh"
+export PATH="$HOME/.local/bin:$PATH"
+have() { command -v claude >/dev/null 2>&1; }
+install() {
+  [ "$(id -u)" = 0 ] && { echo "Bitte als normaler Benutzer ausfuehren, nicht als root."; return 1; }
+  command -v curl >/dev/null 2>&1 || { echo "curl fehlt: sudo spiralos-pack claude"; return 1; }
+  echo "Claude Code wird mit dem offiziellen Installer von Anthropic installiert:"
+  echo "  curl -fsSL $URL | bash"
+  printf 'Fortfahren? [j/N] '; read a; [ "$a" = j ] || return 1
+  curl -fsSL "$URL" | bash || { echo "Installation fehlgeschlagen (Internet?)."; return 1; }
+  grep -q '.local/bin' "$HOME/.profile" 2>/dev/null || echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+  echo "Fertig. Starte mit: spiralos-claude. Beim ersten Start meldest du dich mit deinem Claude-Konto im Browser an."
+}
+case "$1" in
+  install|update) install ;;
+  doctor) have || { echo "Noch nicht installiert: spiralos-claude install"; exit 1; }; claude doctor ;;
+  web) exec firefox-esr --new-window https://claude.ai ;;
+  ""|run) have || { install || exit 1; }; exec claude ;;
+  *) have || { install || exit 1; }; exec claude "$@" ;;
+esac

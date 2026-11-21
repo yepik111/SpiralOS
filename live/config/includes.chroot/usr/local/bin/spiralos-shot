@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+w=win("SpiralOS "+t2("Screenshot","Bildschirmfoto"),320,230); box=Gtk.VBox(spacing=8,margin=14); w.add(box)
+sp=Gtk.SpinButton.new_with_range(1,30,1); sp.set_value(2); box.pack_start(Gtk.Label(label=t2("Delay (seconds)","Verzögerung (Sekunden)")),False,False,0); box.pack_start(sp,False,False,0)
+def shot(flag):
+    d=int(sp.get_value()); w.iconify()
+    subprocess.Popen('xfce4-screenshooter %s -d %d -s "$(xdg-user-dir PICTURES)/shot-$(date +%%s).png"'%(flag,d),shell=True)
+    GLib.timeout_add_seconds(d+4,lambda:(w.deiconify(),False)[1])
+for fl,n in (("-f",t2("Whole screen","Ganzer Bildschirm")),("-r",t2("Region","Bereich")),("-w",t2("Window","Fenster"))): box.pack_start(button(n,lambda f=fl:shot(f)),False,False,0)
+run_app(w)

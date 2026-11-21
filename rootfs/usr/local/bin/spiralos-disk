@@ -1,0 +1,10 @@
+#!/bin/sh
+# spiralos-disk [pfad]: Belegung, groesste Ordner, Festplatten-Gesundheit
+P="${1:-/}"
+df -h "$P" | sed -n '1,2p'
+echo; echo "Largest folders in $P:"
+du -xh --max-depth=1 "$P" 2>/dev/null | sort -rh | head -n 12
+echo
+for d in $(ls /sys/block | grep -E '^(sd|nvme|vd)'); do
+  printf '/dev/%s: ' "$d"; sudo smartctl -H "/dev/$d" 2>/dev/null | grep -iE 'overall|result' || echo "SMART n/a"
+done

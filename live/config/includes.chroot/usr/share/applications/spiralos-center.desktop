@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Systemzentrum
+Comment=Programme, Dienste, Wartung
+Exec=spiralos-center
+Icon=spiralos-center
+Categories=System;Settings;
+Terminal=false

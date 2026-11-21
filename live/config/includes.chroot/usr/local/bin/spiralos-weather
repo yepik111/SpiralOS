@@ -1,0 +1,3 @@
+#!/bin/sh
+# spiralos-weather [ort]  (nutzt wttr.in)
+curl -fsS --max-time 15 "https://wttr.in/${1:-}?0&lang=$(printf %s "${LANG:-en}" | cut -c1-2)" || echo "Weather service not reachable."

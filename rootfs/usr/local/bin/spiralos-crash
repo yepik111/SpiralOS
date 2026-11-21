@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+# spiralos-crash <typ> [detail]  |  spiralos-crash test <typ>
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+import time
+T={"oom":(31,"SPIRAL_OUT_OF_MEMORY",39),"disk":(32,"SPIRAL_DISK_FULL",40),"panic":(33,"SPIRAL_KERNEL_PANIC",41),"heat":(34,"SPIRAL_OVERHEAT",42),
+"battery":(35,"SPIRAL_BATTERY_CRITICAL",43),"app":(36,"SPIRAL_APP_CRASH",44),"fs":(37,"SPIRAL_FILESYSTEM_ERROR",45),"gpu":(38,"SPIRAL_GPU_ERROR",46),
+"net":(49,"SPIRAL_NETWORK_LOST",50),"update":(51,"SPIRAL_UPDATE_FAILED",52),"driver":(53,"SPIRAL_DRIVER_ERROR",54)}
+a=sys.argv[1:]
+if a and a[0]=="test": a=a[1:]
+if not a or a[0] not in T: print("types: "+" ".join(T)); sys.exit(0)
+typ=a[0]; detail=" ".join(a[1:]); ti,code,tx=T[typ]
+LOG=os.path.expanduser("~/crashlogs"); os.makedirs(LOG,exist_ok=True)
+try: open("%s/%s-%d.log"%(LOG,code,time.time()),"w").write("%s\n%s\n%s\n"%(time.ctime(),code,detail))
+except Exception: pass
+css=Gtk.CssProvider(); css.load_from_data(b"window{background:#1c2331} label{color:#e5e9f0} .dim{color:#9aa5b8}")
+Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),css,Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+w=Gtk.Window(); w.fullscreen(); w.connect("destroy",Gtk.main_quit)
+if typ!="panic": w.connect("key-press-event",lambda _w,e: w.destroy() if e.keyval==Gdk.KEY_Escape else None)
+box=Gtk.VBox(spacing=10,halign=Gtk.Align.CENTER,valign=Gtk.Align.CENTER); w.add(box)
+def lab(text,size="medium",dim=False,mono=False):
+    l=Gtk.Label(wrap=True,max_width_chars=60,justify=Gtk.Justification.CENTER)
+    l.set_markup('<span size="%s"%s>%s</span>'%(size,' font_family="monospace"' if mono else "",GLib.markup_escape_text(text)))
+    if dim: l.get_style_context().add_class("dim")
+    box.pack_start(l,False,False,0); return l
+lab(":(","72000"); lab(t(ti),"xx-large"); lab(t(tx),"large")
+if typ=="oom": detail=(detail+"\n" if detail else "")+sh("ps -eo comm,%mem --sort=-%mem --no-headers | head -5")
+if detail: lab(detail,dim=True,mono=True)
+lab(t(30)+": "+code,dim=True,mono=True)
+bf=Gtk.HBox(spacing=8,halign=Gtk.Align.CENTER); box.pack_start(bf,False,False,10)
+def reboot(): subprocess.Popen(["systemctl","reboot"])
+def killtop():
+    for l in sh("ps -u %s -o pid,comm --sort=-%%mem --no-headers"%os.environ.get("USER","spiral")).splitlines():
+        p,c=l.split(None,1)
+        if c.strip() not in ("Xorg","xfce4-session","xfwm4","xfdesktop","xfce4-panel","spiralos-crash","systemd","bash"):
+            try: os.kill(int(p),15); break
+            except Exception: pass
+    w.destroy()
+def report():
+    f="%s/report-%d.txt"%(LOG,time.time())
+    open(f,"w").write("%s\n%s\n%s\n\n%s\n%s\n"%(time.ctime(),code,detail,sh("spiralos-info"),sh("journalctl -b -p 3 -n 60 --no-pager 2>&1")))
+    status.set_text(t(56))
+if typ=="oom": bf.pack_start(button(t(29),killtop),False,False,0)
+if typ=="panic":
+    status=lab("","medium",True); n=[10]
+    def tick():
+        status.set_text(t(47)%n[0])
+        if n[0]<=0: reboot(); return False
+        n[0]-=1; return True
+    tick(); GLib.timeout_add_seconds(1,tick); bf.pack_start(button(t(27),reboot),False,False,0)
+else:
+    status=lab("","medium",True)
+    bf.pack_start(button(t(26),w.destroy),False,False,0); bf.pack_start(button(t(55),report),False,False,0)
+    bf.pack_start(button(t(28),lambda:(subprocess.Popen(["xfce4-terminal","-e","sudo spiralos-emergency"]),w.destroy())),False,False,0)
+    bf.pack_start(button(t(27),reboot),False,False,0)
+run_app(w)

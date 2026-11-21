@@ -1,0 +1,10 @@
+#!/bin/sh
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+case "$1" in
+  on) ufw default deny incoming; ufw allow ssh; ufw --force enable ;;
+  off) ufw disable ;;
+  status) ufw status verbose ;;
+  allow) ufw allow "$2" ;;
+  deny) ufw deny "$2" ;;
+  *) echo "Nutzung: spiralos-firewall on|off|status|allow <port>|deny <port>" ;;
+esac

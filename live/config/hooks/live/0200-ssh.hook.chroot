@@ -1,0 +1,7 @@
+#!/bin/sh
+rm -f /etc/ssh/ssh_host_*
+systemctl enable spiralos-ssh-hostkeys.service || true
+systemctl enable ssh.service || true
+systemctl enable NetworkManager.service || true
+systemctl enable lightdm.service || true
+exit 0

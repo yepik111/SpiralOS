@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Rechner
+Comment=Taschenrechner
+Exec=spiralos-calc
+Icon=spiralos-calc
+Categories=Utility;Calculator;
+Terminal=false

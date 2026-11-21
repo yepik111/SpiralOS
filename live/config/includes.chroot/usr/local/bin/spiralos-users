@@ -1,0 +1,12 @@
+#!/bin/sh
+# spiralos-users list|add|remove|passwd|sudo|nosudo <name>
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+case "$1" in
+  list|"") awk -F: '$3>=1000&&$3<60000{print $1}' /etc/passwd ;;
+  add) adduser "$2" ;;
+  remove) printf 'Delete user %s and ALL their files? [y/N] ' "$2"; read a; [ "$a" = y ] && deluser --remove-home "$2" ;;
+  passwd) passwd "$2" ;;
+  sudo) usermod -aG sudo "$2" && echo "$2 may now use sudo" ;;
+  nosudo) deluser "$2" sudo ;;
+  *) echo "Usage: spiralos-users list|add|remove|passwd|sudo|nosudo <name>" ;;
+esac

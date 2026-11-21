@@ -1,0 +1,12 @@
+[Unit]
+Description=SpiralOS Nach-der-Installation (einmalig)
+After=multi-user.target
+ConditionPathExists=!/var/lib/spiralos/postinstall-done
+ConditionKernelCommandLine=!boot=live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/spiralos-postinstall
+
+[Install]
+WantedBy=multi-user.target

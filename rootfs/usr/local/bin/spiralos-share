@@ -1,0 +1,11 @@
+#!/bin/sh
+# spiralos-share <ordner|datei> [port]: gibt Dateien im lokalen Netzwerk per Browser frei (Strg+C beendet)
+SRC="${1:-.}"; PORT="${2:-8000}"
+[ -e "$SRC" ] || { echo "Not found: $SRC"; exit 1; }
+if [ -f "$SRC" ]; then D=$(mktemp -d); ln -s "$(readlink -f "$SRC")" "$D/$(basename "$SRC")"; SRC="$D"; fi
+trap 'sudo ufw delete allow "$PORT/tcp" >/dev/null 2>&1' EXIT INT TERM
+sudo ufw allow "$PORT/tcp" >/dev/null 2>&1
+echo "Sharing read-only. Open on another device in your network:"
+for ip in $(hostname -I); do echo "  http://$ip:$PORT"; done
+echo "Everyone in your network can access it. Stop with Ctrl+C."
+cd "$SRC" && python3 -m http.server "$PORT"

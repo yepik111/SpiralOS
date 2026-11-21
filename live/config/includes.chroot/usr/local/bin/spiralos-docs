@@ -1,0 +1,8 @@
+#!/bin/sh
+# spiralos-docs [list|<name>]: Handbuecher lesen (INSTALLATION, BENUTZERHANDBUCH, FEHLERSUCHE, THIRD-PARTY, COMMANDS)
+D=/usr/share/doc/spiralos
+case "$1" in
+  ""|list) ls "$D" | sed 's/\.md$//' ;;
+  *) f=$(ls "$D"/* 2>/dev/null | grep -i "/$1" | head -n1)
+     if [ -n "$f" ]; then ${PAGER:-less} "$f"; else echo "Not found. Try: spiralos-docs list"; fi ;;
+esac

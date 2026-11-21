@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Anmeldeklang
+Exec=spiralos-loginsound
+NoDisplay=true

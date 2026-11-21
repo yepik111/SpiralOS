@@ -1,0 +1,36 @@
+#!/bin/sh
+F="$HOME/.config/spiralos/firstlogin"
+[ -f "$F" ] && exit 0
+mkdir -p "$(dirname "$F")"; sleep 4
+for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep 'last-image$'); do xfconf-query -c xfce4-desktop -p "$p" -s /usr/share/backgrounds/spiralos/default.png; done
+for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep 'image-style$'); do xfconf-query -c xfce4-desktop -p "$p" -s 5; done
+xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s SpiralOS
+xfconf-query -c xsettings -p /Net/SoundThemeName -n -t string -s SpiralOS
+xfconf-query -c xsettings -p /Net/EnableEventSounds -n -t bool -s true
+xfconf-query -c xsettings -p /Gtk/FontName -n -t string -s "Spiral Sans 10"
+xfconf-query -c xsettings -p /Gtk/MonospaceFontName -n -t string -s "Spiral Mono 10"
+xfconf-query -c xfwm4 -p /general/title_font -n -t string -s "Spiral Sans Bold 10"
+xfconf-query -c xfwm4 -p /general/button_layout -n -t string -s "|HMC"
+xfconf-query -c xfwm4 -p /general/use_compositing -n -t bool -s true
+xfconf-query -c xfce4-desktop -p /desktop-icons/style -n -t int -s 0
+xfconf-query -c xfce4-panel -p /panels/panel-1/size -n -t uint -s 30
+xfconf-query -c xfce4-panel -p /panels/panel-1/icon-size -n -t uint -s 18
+ICON=SpiralOS
+xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "$ICON"
+xfconf-query -c xfce4-panel -p /panels/dark-mode -n -t bool -s true
+if [ "$(xfconf-query -c xfce4-panel -p /plugins/plugin-1 2>/dev/null)" = applicationsmenu ] && command -v xfce4-popup-whiskermenu >/dev/null 2>&1; then
+  xfconf-query -c xfce4-panel -p /plugins/plugin-1 -s whiskermenu && xfce4-panel -r
+fi
+while IFS='|' read -r key cmd; do
+  xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$key" -n -t string -s "$cmd"
+done <<'EOT'
+<Primary><Alt>Delete|spiralos-power
+Print|spiralos-quickshot
+<Super>e|thunar
+<Super>t|xfce4-terminal
+<Super>l|xflock4
+<Primary><Alt>t|xfce4-terminal
+EOT
+touch "$F"
+grep -q boot=live /proc/cmdline && spiralos-setpass
+exec spiralos-welcome

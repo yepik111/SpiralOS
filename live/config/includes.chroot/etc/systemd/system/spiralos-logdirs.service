@@ -1,0 +1,14 @@
+[Unit]
+Description=SpiralOS Log-Verzeichnisse im RAM anlegen
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target
+ConditionPathExists=/etc/spiralos-flash
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'mkdir -p /var/log/apt /var/log/lightdm /var/log/cups /var/log/unattended-upgrades; chown root:lp /var/log/cups 2>/dev/null; chmod 750 /var/log/lightdm'
+
+[Install]
+WantedBy=sysinit.target

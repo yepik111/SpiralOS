@@ -1,0 +1,9 @@
+[Unit]
+Description=SpiralOS Ereignisdienst (Absturz-Meldungen)
+
+[Service]
+ExecStart=/usr/local/bin/spiralos-eventd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

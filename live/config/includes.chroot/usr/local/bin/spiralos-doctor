@@ -1,0 +1,17 @@
+#!/bin/sh
+. /usr/local/lib/spiralos/msg.sh
+if [ "$1" = fix ]; then
+  for s in $(systemctl --failed --no-legend | awk '{for(i=1;i<=2;i++) if($i ~ /\.service$/) print $i}'); do sudo systemctl restart "$s" && echo "restarted $s"; done
+  sudo dpkg --configure -a; sudo apt-get -f install -y; exit 0
+fi
+ok() { echo "[ OK ] $*"; }; bad() { echo "[FEHLER] $*"; }
+ping -c1 -W2 1.1.1.1 >/dev/null 2>&1 && ok "$(m net_ok)" || bad "$(m net_bad)"
+getent hosts cloudflare.com >/dev/null 2>&1 && ok DNS || bad "$(m dns_bad)"
+U=$(df / | awk 'NR==2{gsub("%","",$5);print $5}'); [ "$U" -lt 90 ] && ok "$(m disk_ok "$U")" || bad "$(m disk_bad "$U")"
+for s in NetworkManager ssh lightdm; do systemctl is-active --quiet $s && ok "$(m svc_ok $s)" || bad "$(m svc_bad $s)"; done
+[ "$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)" -gt 300 ] && ok RAM || bad "$(m ram_bad)"
+swapon --show 2>/dev/null | grep -q zram && ok ZRAM || bad "ZRAM: -"
+systemctl is-active --quiet fail2ban && ok fail2ban || bad "$(m svc_bad fail2ban)"
+[ -f /etc/spiralos-flash ] && ok "Flash mode (logs in RAM)" || echo "[ i ] Flash mode off: spiralos-flash on"
+SB=$(mokutil --sb-state 2>/dev/null | head -n1); [ -n "$SB" ] && ok "$SB"
+spiralos-selfupdate check >/dev/null 2>&1; [ $? = 10 ] && bad "$(m upd_avail)" || ok "$(m upd_ok "$(spiralos-selfupdate version)")"

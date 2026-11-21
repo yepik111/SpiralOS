@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Editor
+Name[de]=Editor
+Comment=Edit text files
+Exec=spiralos-edit %F
+Icon=spiralos-edit
+Categories=Utility;TextEditor;
+MimeType=text/plain;text/markdown;text/x-python;text/x-shellscript;application/x-shellscript;application/json;application/xml;
+Terminal=false

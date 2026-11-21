@@ -1,0 +1,45 @@
+#!/bin/sh
+# spiralos-flash on|off|status: Schonmodus fuer SD-Karten/SSDs. Protokolle nur im RAM, nur bei Abstuerzen auf die Platte.
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+FL=/etc/spiralos-flash; S=/var/lib/spiralos; mkdir -p "$S"
+FSTAB="${FSTAB:-/etc/fstab}"
+TIMERS="logrotate man-db dpkg-db-backup e2scrub_all"
+on() {
+  [ -f "$FSTAB.spiralos-bak" ] || cp "$FSTAB" "$FSTAB.spiralos-bak"
+  sed -i -E '/^[^#].*[[:space:]]ext4[[:space:]]/{/noatime/!s/(ext4[[:space:]]+)([^[:space:]]+)/\1\2,noatime,commit=30/}' "$FSTAB"
+  sed -i -E '/^[^#].*[[:space:]]swap[[:space:]]/s/^/#sf-swap /' "$FSTAB"; swapoff -a 2>/dev/null
+  if ! grep -q '# spiralos-flash$' "$FSTAB"; then cat >> "$FSTAB" <<'EOT'
+tmpfs /tmp tmpfs defaults,noatime,nosuid,nodev,size=256m 0 0 # spiralos-flash
+tmpfs /var/tmp tmpfs defaults,noatime,nosuid,nodev,size=128m 0 0 # spiralos-flash
+tmpfs /var/log tmpfs defaults,noatime,nosuid,nodev,mode=0755,size=64m 0 0 # spiralos-flash
+EOT
+  fi
+  [ -n "$FSTAB_ONLY" ] && return 0
+  mkdir -p /etc/systemd/journald.conf.d
+  printf '[Journal]\nStorage=volatile\nRuntimeMaxUse=40M\nForwardToSyslog=no\n' > /etc/systemd/journald.conf.d/50-spiralos-flash.conf
+  printf 'vm.dirty_writeback_centisecs=1500\nvm.dirty_expire_centisecs=3000\nvm.swappiness=100\n' > /etc/sysctl.d/91-spiralos-flash.conf
+  : > "$S/flash-disabled"
+  for t in $TIMERS; do systemctl is-enabled -q "$t.timer" 2>/dev/null && { systemctl disable --now "$t.timer" >/dev/null 2>&1; echo "$t" >> "$S/flash-disabled"; }; done
+  for t in apt-daily apt-daily-upgrade; do mkdir -p "/etc/systemd/system/$t.timer.d"; printf '[Timer]\nOnCalendar=\nOnCalendar=Sun *-*-* 03:30\nRandomizedDelaySec=1h\n' > "/etc/systemd/system/$t.timer.d/spiralos-flash.conf"; done
+  [ -d /usr/lib/firefox-esr/defaults/pref ] && printf 'pref("browser.cache.disk.enable", false);\npref("browser.sessionstore.interval", 300000);\n' > /usr/lib/firefox-esr/defaults/pref/spiralos-flash.js
+  systemctl enable spiralos-logdirs.service >/dev/null 2>&1
+  touch "$FL"; systemctl daemon-reload 2>/dev/null
+  echo "Flash mode ON. Restart to apply. Crash reports go to $S/crashlogs."
+}
+off() {
+  sed -i -e '/# spiralos-flash$/d' -e 's/^#sf-swap //' -e 's/,noatime,commit=30//' "$FSTAB"
+  [ -n "$FSTAB_ONLY" ] && return 0
+  rm -f /etc/systemd/journald.conf.d/50-spiralos-flash.conf /etc/sysctl.d/91-spiralos-flash.conf /etc/systemd/system/apt-daily.timer.d/spiralos-flash.conf /etc/systemd/system/apt-daily-upgrade.timer.d/spiralos-flash.conf /usr/lib/firefox-esr/defaults/pref/spiralos-flash.js "$FL"
+  [ -f "$S/flash-disabled" ] && while read -r t; do [ -n "$t" ] && systemctl enable --now "$t.timer" >/dev/null 2>&1; done < "$S/flash-disabled"
+  systemctl daemon-reload 2>/dev/null; echo "Flash mode OFF. Restart to apply."
+}
+status() {
+  [ -f "$FL" ] && echo "Flash mode: ON (setting)" || echo "Flash mode: OFF"
+  echo "/var/log is: $(findmnt -n -o FSTYPE /var/log 2>/dev/null || echo disk)   /tmp is: $(findmnt -n -o FSTYPE /tmp 2>/dev/null || echo disk)"
+  echo "Journal: $(journalctl --header 2>/dev/null | grep -qi 'volatile' && echo RAM || ls /var/log/journal >/dev/null 2>&1 && echo disk || echo RAM)"
+  echo "Disk swap: $(swapon --show=NAME,TYPE --noheadings 2>/dev/null | grep -vc zram) active (zram swap lives in RAM)"
+  DEV=$(findmnt -n -o SOURCE / | sed 's|/dev/||; s|p\?[0-9]*$||')
+  [ -r "/sys/block/$DEV/stat" ] && awk -v d="$DEV" '{printf "Written to %s since boot: %.0f MB\n",d,$7*512/1048576}' "/sys/block/$DEV/stat"
+  n=$(ls "$S/crashlogs" 2>/dev/null | wc -l); echo "Crash reports on disk: $n ($S/crashlogs)"
+}
+case "$1" in on) on ;; off) off ;; status|"") status ;; *) echo "Usage: spiralos-flash on|off|status" ;; esac

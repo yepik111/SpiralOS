@@ -1,0 +1,13 @@
+favorites=spiralos-center.desktop,firefox-esr.desktop,xfce4-terminal.desktop,thunar.desktop,spiralos-store.desktop,spiralos-settings.desktop
+button-title=SpiralOS
+button-icon=spiralos-center
+show-button-title=true
+show-button-icon=true
+launcher-show-name=true
+launcher-show-description=false
+display-recent=false
+view-as-icons=false
+item-icon-size=2
+category-icon-size=1
+position-search-alternate=true
+profile-shape=0

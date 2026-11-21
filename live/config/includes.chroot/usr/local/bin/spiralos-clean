@@ -1,0 +1,8 @@
+#!/bin/sh
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+. /usr/local/lib/spiralos/msg.sh
+B=$(df / | awk 'NR==2{print $3}')
+apt-get -y autoremove --purge; apt-get clean
+journalctl --vacuum-size=50M >/dev/null 2>&1
+rm -rf /var/tmp/* 2>/dev/null
+A=$(df / | awk 'NR==2{print $3}'); m freed $(( (B-A)/1024 ))

@@ -1,0 +1,9 @@
+[Unit]
+Description=SpiralOS Standard-Firewall (einmalig)
+After=network.target
+ConditionPathExists=!/var/lib/spiralos-fw-done
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/usr/local/bin/spiralos-firewall on && touch /var/lib/spiralos-fw-done'
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Hardware Assistant
+Name[de]=Hardware-Assistent
+Comment=Drivers, printer, fingerprint
+Exec=spiralos-hardware
+Icon=spiralos-hardware
+Categories=System;Settings;
+Terminal=true

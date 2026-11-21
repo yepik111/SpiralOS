@@ -1,0 +1,8 @@
+#!/bin/sh
+# spiralos-backup create <quelle> <zielordner> | list <zielordner> | restore <archiv> <zielordner>
+case "$1" in
+  create) mkdir -p "$3" && F="$3/backup-$(date +%Y%m%d-%H%M%S).tar.gz" && tar -czf "$F" -C "$(dirname "$2")" "$(basename "$2")" --exclude=Backups && echo "Erstellt: $F" ;;
+  list) ls -lh "$2"/backup-*.tar.gz ;;
+  restore) mkdir -p "$3" && tar -xzf "$2" -C "$3" && echo "Wiederhergestellt in $3" ;;
+  *) echo "Nutzung: spiralos-backup create <quelle> <ziel> | list <ziel> | restore <archiv> <ziel>" ;;
+esac

@@ -1,0 +1,9 @@
+#!/bin/sh
+# spiralos-sound on|off|test: Anmeldeklang und Systemklaenge
+mkdir -p "$HOME/.config/spiralos"
+case "$1" in
+  off) touch "$HOME/.config/spiralos/nosound"; echo "Login sound off" ;;
+  on) rm -f "$HOME/.config/spiralos/nosound"; echo "Login sound on" ;;
+  test) paplay /usr/share/sounds/SpiralOS/stereo/service-login.wav ;;
+  *) echo "Usage: spiralos-sound on|off|test" ;;
+esac

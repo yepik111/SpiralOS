@@ -1,0 +1,4 @@
+#!/bin/sh
+[ -f "$HOME/.config/spiralos/nosound" ] && exit 0
+sleep 4; paplay /usr/share/sounds/SpiralOS/stereo/service-login.wav 2>/dev/null
+exit 0

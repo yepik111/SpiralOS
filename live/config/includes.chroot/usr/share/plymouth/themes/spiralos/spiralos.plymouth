@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=SpiralOS
+Description=SpiralOS boot screen
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/spiralos
+ScriptFile=/usr/share/plymouth/themes/spiralos/spiralos.script

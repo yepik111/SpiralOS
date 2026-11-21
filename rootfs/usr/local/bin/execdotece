@@ -1,0 +1,43 @@
+#!/bin/sh
+# execdotece [--prefix NAME] [--winetricks "verb ..."] <datei.exe|.msi> [argumente]
+# execdotece --setup | --list | --reset NAME
+SUDO=""; [ "$(id -u)" = 0 ] || SUDO="sudo"
+BASE="$HOME/.local/share/spiralos/wine"; PREF="default"; TRICKS=""
+usage() { echo 'Usage: execdotece [--prefix NAME] [--winetricks "vcrun2019 corefonts"] <file.exe> [args] | --setup | --list | --reset NAME'; }
+setup() {
+  if ! command -v wine >/dev/null 2>&1; then
+    echo "Setting up Windows support (Wine + winetricks, one time, ~1 GB, internet needed) ..."
+    $SUDO dpkg --add-architecture i386 || return 1
+    $SUDO apt-get update || return 1
+    $SUDO apt-get install -y wine wine64 wine32:i386 libwine fonts-wine winetricks || return 1
+  fi
+  if [ ! -f /etc/binfmt.d/wine.conf ]; then
+    echo ':Wine:E::exe::/usr/bin/wine:' | $SUDO tee /etc/binfmt.d/wine.conf >/dev/null
+    $SUDO systemctl restart systemd-binfmt 2>/dev/null || true
+  fi
+}
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --prefix) PREF="$2"; shift 2 ;;
+    --winetricks) TRICKS="$2"; shift 2 ;;
+    --list) ls "$BASE" 2>/dev/null; exit 0 ;;
+    --reset) rm -rf "$BASE/$2"; echo "Prefix $2 removed"; exit 0 ;;
+    --setup) setup; exit $? ;;
+    -h|--help|"") usage; exit 0 ;;
+    *) break ;;
+  esac
+done
+f="$1"; shift
+[ -f "$f" ] || { echo "execdotece: file not found: $f"; exit 1; }
+case "$f" in
+  *.msi|*.MSI) ;;
+  *) [ "$(head -c2 "$f")" = "MZ" ] || { echo "execdotece: '$f' is not a Windows program (.exe)."; exit 1; } ;;
+esac
+setup || { echo "execdotece: setup failed (internet?)"; exit 1; }
+mkdir -p "$BASE/$PREF"; export WINEPREFIX="$BASE/$PREF" WINEDEBUG=-all
+[ -n "$TRICKS" ] && winetricks -q $TRICKS
+chmod +x "$f"
+case "$f" in
+  *.msi|*.MSI) wine msiexec /i "$f" "$@" ;;
+  *) wine "$f" "$@" ;;
+esac || echo 'Program exited with an error. Tip: --winetricks "vcrun2019 corefonts" or try another --prefix.'

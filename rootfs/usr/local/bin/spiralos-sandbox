@@ -1,0 +1,5 @@
+#!/bin/sh
+# spiralos-sandbox [--online] <programm>: startet ein Programm isoliert (temporaeres Home, ohne Netzwerk)
+NET="--net=none"; [ "$1" = "--online" ] && { NET=""; shift; }
+[ -n "$1" ] || { echo "Usage: spiralos-sandbox [--online] <program>"; exit 1; }
+exec firejail --private $NET "$@"

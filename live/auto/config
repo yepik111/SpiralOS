@@ -1,0 +1,15 @@
+#!/bin/sh
+lb config noauto \
+  --distribution bookworm \
+  --architectures amd64 \
+  --linux-flavours amd64 \
+  --archive-areas "main contrib non-free non-free-firmware" \
+  --binary-images iso-hybrid \
+  --bootloaders "syslinux,grub-efi" \
+  --debian-installer none \
+  --security true --updates true \
+  --cache false \
+  --chroot-squashfs-compression-type xz \
+  --iso-application "SpiralOS" --iso-publisher "SpiralOS" --iso-volume "SPIRALOS" \
+  --bootappend-live "boot=live components quiet splash panic=10 persistence username=spiral user-fullname=SpiralOS hostname=spiralos locales=de_DE.UTF-8 keyboard-layouts=de timezone=Europe/Berlin" \
+  "${@}"

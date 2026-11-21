@@ -1,0 +1,2 @@
+#!/bin/sh
+exec xfce4-screenshooter -f -s "$(xdg-user-dir PICTURES)/shot-$(date +%s).png"

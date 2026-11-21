@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+# Live-System: erklaert, dass nichts gespeichert wird, und bietet ein vorübergehendes SSH-Passwort an
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+user=os.environ.get("USER","spiral")
+d=Gtk.MessageDialog(message_type=Gtk.MessageType.INFO,buttons=Gtk.ButtonsType.NONE,text=t2("SpiralOS live system","SpiralOS Live-System"))
+d.format_secondary_text(t2("You are running from the installation medium. Nothing is saved: after every restart all changes are gone and the password is 'live' again (user: %s).\n\nTo keep your data, install SpiralOS.\n\nOptional: set a temporary password to allow SSH logins until you restart.","Du startest vom Installationsmedium. Nichts wird gespeichert: nach jedem Neustart sind alle Änderungen weg und das Passwort ist wieder 'live' (Benutzer: %s).\n\nUm deine Daten zu behalten, installiere SpiralOS.\n\nOptional: Lege ein vorübergehendes Passwort fest, damit SSH-Anmeldung bis zum Neustart möglich ist.")%user)
+d.add_button(t2("Install now","Jetzt installieren"),1); d.add_button(t2("Set temporary SSH password","SSH-Passwort setzen"),2); d.add_button(t2("Continue","Weiter"),0)
+d.set_default_response(0); r=d.run(); d.destroy()
+if r==1: subprocess.Popen(["spiralos-install"]); sys.exit(0)
+if r!=2: sys.exit(0)
+while True:
+    p1=ask_text(None,"SpiralOS",t2("Temporary password (min. 8 characters, gone after restart)","Vorübergehendes Passwort (mind. 8 Zeichen, nach Neustart weg)"),True)
+    if p1 is None: sys.exit(0)
+    if len(p1)<8: msg(None,t2("Too short","Zu kurz")); continue
+    p2=ask_text(None,"SpiralOS",t2("Repeat password","Passwort wiederholen"),True)
+    if p1!=p2: msg(None,t2("Passwords differ","Passwörter stimmen nicht überein")); continue
+    break
+r=subprocess.run(["sudo","-n","chpasswd"],input=("%s:%s\n"%(user,p1)).encode())
+if r.returncode!=0: msg(None,t2("Could not change the password.","Passwort konnte nicht geändert werden.")); sys.exit(1)
+sh("sudo -n sh -c 'rm -f /etc/ssh/sshd_config.d/05-live.conf; systemctl restart ssh'")
+msg(None,t2("Password set until the next restart.","Passwort gilt bis zum nächsten Neustart."))

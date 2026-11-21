@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Handbook
+Name[de]=SpiralOS-Handbuch
+Comment=User guide and installation guide
+Exec=xfce4-terminal -e "spiralos-docs BENUTZERHANDBUCH"
+Icon=spiralos-docs
+Categories=System;Documentation;
+Terminal=false

@@ -1,0 +1,11 @@
+#!/bin/sh
+mkdir -p /usr/share/backgrounds/spiralos
+python3 - <<'EOT'
+import zlib,struct
+w,h=1920,1080
+raw=(b'\x00'+bytes([0x1b,0x22,0x2e])*w)*h
+def ch(t,d): return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+png=b'\x89PNG\r\n\x1a\n'+ch(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+ch(b'IDAT',zlib.compress(raw,9))+ch(b'IEND',b'')
+open('/usr/share/backgrounds/spiralos/default.png','wb').write(png)
+EOT
+exit 0

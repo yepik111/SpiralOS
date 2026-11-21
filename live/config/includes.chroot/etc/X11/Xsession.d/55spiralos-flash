@@ -1,0 +1,6 @@
+# Schonmodus: Caches und Sitzungsprotokoll in den RAM (nur wenn aktiv)
+if [ -f /etc/spiralos-flash ]; then
+  _u=$(id -un)
+  XDG_CACHE_HOME="/tmp/cache-$_u"; export XDG_CACHE_HOME; mkdir -p "$XDG_CACHE_HOME"; chmod 700 "$XDG_CACHE_HOME"
+  exec >>"/tmp/xsession-errors-$_u" 2>&1
+fi

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=SpiralOS Eingabemethode
+Exec=sh -c '[ -f ~/.config/spiralos/ime ] \&\& exec ibus-daemon -drx'
+NoDisplay=true

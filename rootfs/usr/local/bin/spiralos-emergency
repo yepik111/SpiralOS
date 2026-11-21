@@ -1,0 +1,49 @@
+#!/bin/sh
+# SpiralOS Notfallkonsole: Reparatur-Menue
+[ "$(id -u)" = 0 ] || exec sudo "$0" "$@"
+pause() { printf '\n[Enter] weiter '; read _x; }
+ask() { printf '%s [j/N] ' "$1"; read _a; [ "$_a" = j ] || [ "$_a" = J ]; }
+while true; do
+  clear
+  cat <<'EOT'
+=========== SpiralOS Notfallkonsole ===========
+  1) Datentraeger pruefen und reparieren (fsck)
+  2) Netzwerk zuruecksetzen
+  3) Desktop-Einstellungen eines Benutzers zuruecksetzen
+  4) Letztes SpiralOS-Update zuruecknehmen
+  5) Paketsystem reparieren (dpkg/apt)
+  6) Passwort eines Benutzers zuruecksetzen
+  7) Fehlgeschlagene Dienste und Fehlerlog anzeigen
+  8) Speicherplatz freigeben
+  9) Textmodus ein/aus (ohne Desktop starten)
+ 10) Bootloader neu erzeugen (update-grub)
+ 11) Diagnose
+ 12) Root-Shell oeffnen
+ 13) Neu starten
+ 14) Ausschalten
+ 15) System-Snapshot wiederherstellen
+  0) Beenden
+EOT
+  printf 'Auswahl: '; read c
+  case "$c" in
+    1) lsblk -f; printf 'Geraet (nicht eingehaengt, z.B. /dev/sda2): '; read d
+       if [ ! -b "$d" ]; then echo "Kein Geraet."; elif mount | grep -q "^$d "; then echo "Eingehaengt - bitte aus dem Live-System oder Rescue-Modus pruefen."
+       elif ask "fsck auf $d ausfuehren?"; then fsck -f -y "$d"; fi; pause ;;
+    2) systemctl restart NetworkManager; nmcli networking off; sleep 2; nmcli networking on; sleep 3; spiralos-net status; pause ;;
+    3) ls /home; printf 'Benutzer: '; read u
+       if [ -d "/home/$u" ]; then t=$(date +%s); [ -d "/home/$u/.config/xfce4" ] && mv "/home/$u/.config/xfce4" "/home/$u/.config/xfce4.bak-$t"; rm -rf "/home/$u/.cache/sessions"; echo "Zurueckgesetzt (Sicherung: .config/xfce4.bak-$t). Beim naechsten Login neu."; else echo "Benutzer nicht gefunden."; fi; pause ;;
+    4) spiralos-selfupdate rollback; pause ;;
+    5) dpkg --configure -a; apt-get -f install -y; apt-get update; pause ;;
+    6) cut -d: -f1,3 /etc/passwd | awk -F: '$2>=1000 && $2<60000{print $1}'; printf 'Benutzer: '; read u; id "$u" >/dev/null 2>&1 && passwd "$u"; pause ;;
+    7) systemctl --failed --no-pager; echo; journalctl -b -p 3 -n 40 --no-pager; pause ;;
+    8) spiralos-clean; df -h /; pause ;;
+    9) if [ "$(systemctl get-default)" = graphical.target ]; then systemctl set-default multi-user.target; echo "Textmodus beim naechsten Start aktiv."; else systemctl set-default graphical.target; echo "Desktop beim naechsten Start aktiv."; fi; pause ;;
+    10) update-grub; pause ;;
+    11) spiralos-doctor; pause ;;
+    12) echo "Mit 'exit' zurueck zum Menue."; /bin/bash ;;
+    13) systemctl reboot ;;
+    14) systemctl poweroff ;;
+    15) spiralos-snapshot list; printf 'Name oder latest: '; read n; [ -n "$n" ] && spiralos-snapshot restore "$n"; pause ;;
+    0) exit 0 ;;
+  esac
+done

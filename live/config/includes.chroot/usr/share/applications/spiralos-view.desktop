@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Images
+Name[de]=Bilder
+Comment=View pictures
+Exec=spiralos-view %F
+Icon=spiralos-view
+Categories=Graphics;Viewer;
+MimeType=image/png;image/jpeg;image/gif;image/bmp;image/webp;image/svg+xml;image/tiff;
+Terminal=false

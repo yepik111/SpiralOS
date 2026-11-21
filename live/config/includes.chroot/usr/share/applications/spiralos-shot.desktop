@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Screenshot
+Name[de]=Bildschirmfoto
+Comment=Take screenshots
+Exec=spiralos-shot
+Icon=spiralos-shot
+Categories=Utility;
+Terminal=false

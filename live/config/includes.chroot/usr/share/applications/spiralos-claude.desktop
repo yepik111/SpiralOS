@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Claude Code
+Name[de]=Claude Code
+Comment=AI coding assistant in the terminal
+Comment[de]=KI-Programmierassistent im Terminal
+Exec=spiralos-claude
+Icon=utilities-terminal
+Categories=Development;Utility;
+Terminal=true

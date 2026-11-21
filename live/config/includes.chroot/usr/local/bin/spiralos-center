@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+import sys; sys.path.insert(0,"/usr/local/lib/spiralos")
+from sgtk import *
+B="/usr/local/bin/"; R="pkexec "+B
+w=win(t(48),800,640); box=Gtk.VBox(spacing=4); w.add(box)
+nb=Gtk.Notebook(); box.pack_start(nb,True,True,0); out=Out(180); box.pack_end(out,False,False,0)
+def page(name,items):
+    g=Gtk.Grid(column_spacing=8,row_spacing=8,margin=12); nb.append_page(g,Gtk.Label(label=name))
+    for i,(x,c) in enumerate(items):
+        b=button(x,lambda c=c:out.run(c)); b.set_size_request(280,-1); g.attach(b,i%2,i//2,1,1)
+    return g
+page(t(0),[(t(4),B+"spiralos-info"),(t(5),B+"spiralos-doctor"),(t(6),B+"spiralos-net status"),("WiFi",B+"spiralos-net wifi"),("Hardware",B+"spiralos-hardware"),("Settings","spiralos-settings &"),("Help",B+"spiralos-help")])
+g=page(t(1),[("Software center","spiralos-store &"),("Office",R+"spiralos-pack buero"),("Media",R+"spiralos-pack medien"),("Dev",R+"spiralos-pack entwicklung"),("Net tools",R+"spiralos-pack netzwerk"),("Games",R+"spiralos-pack spiele"),("Gaming (Steam)",R+"spiralos-pack gaming"),("Printer",R+"spiralos-pack drucker"),("Fingerprint",R+"spiralos-pack fingerabdruck"),("NVIDIA",R+"spiralos-pack nvidia"),("VMs",R+"spiralos-pack virtualisierung"),("Windows (Wine)",B+"execdotece --setup"),("Claude Code","xfce4-terminal -e spiralos-claude &"),("Claude (Web)","spiralos-claude web &")])
+e=Gtk.Entry(); g.attach(e,0,10,1,1); g.attach(button(t(7),lambda:out.run(R+"spiralos-pack "+e.get_text())),1,10,1,1)
+page(t(2),[(t(8),R+"spiralos-ssh on"),(t(9),R+"spiralos-ssh off"),("SSH",B+"spiralos-ssh status"),(t(10),R+"spiralos-firewall on"),(t(11),R+"spiralos-firewall off"),("Firewall",R+"spiralos-firewall status")])
+page(t(3),[(t(12),R+"spiralos-update"),(t(15),R+"spiralos-selfupdate install"),(t(16),B+"spiralos-selfupdate check"),("Changelog",B+"spiralos-selfupdate changelog"),(t(17),R+"spiralos-selfupdate rollback"),("Snapshot",R+"spiralos-snapshot create"),("Snapshots",R+"spiralos-snapshot list"),(t(13),R+"spiralos-clean"),(t(14),B+"spiralos-backup create ~ ~/Backups"),("Backup plan","spiralos-backupplan &"),("USB persistence",R+"spiralos-persist"),(t(28),"xfce4-terminal -e 'sudo spiralos-emergency' &")])
+page("Apps",[(t(20),"spiralos-notes &"),("Search","spiralos-search &"),("Screenshot","spiralos-shot &"),("Passwords","spiralos-pass &"),("Monitor","spiralos-monitor &"),("Calculator","spiralos-calc &")])
+page("Tools",[("Disk usage",B+"spiralos-disk"),("Failed services",B+"spiralos-services failed"),("Fix problems",B+"spiralos-doctor fix"),("Battery",B+"spiralos-battery"),("Speed test",B+"spiralos-speedtest"),("Error log",B+"spiralos-log errors"),("Users",B+"spiralos-users list"),("USB drives",B+"spiralos-usb list"),("Time zone",B+"spiralos-timezone show"),("Share ~/Public","xfce4-terminal -e 'spiralos-share ~/Public' &"),("Power menu","spiralos-power &"),("Reset desktop settings",B+"spiralos-reset user"),("Flash mode status",B+"spiralos-flash status"),("Crash reports","xfce4-terminal -e 'sh -c \"ls -lh /var/lib/spiralos/crashlogs; read x\"' &"),("Install check",B+"spiralos-install-check"),("Profiles",B+"spiralos-profile list"),("Handbook","xfce4-terminal -e 'spiralos-docs BENUTZERHANDBUCH' &")])
+LN=[("en","English"),("de","Deutsch"),("es","Español"),("fr","Français"),("pt","Português (Brasil)"),("ru","Русский"),("zh","中文 (简体)"),("ja","日本語"),("ar","العربية"),("hi","हिन्दी"),("tr","Türkçe"),("it","Italiano"),("pl","Polski"),("ko","한국어")]
+fl=Gtk.VBox(spacing=8,margin=12); nb.append_page(fl,Gtk.Label(label="Language"))
+cb=Gtk.ComboBoxText(); [cb.append_text(n) for c,n in LN]; cb.set_active(0); fl.pack_start(cb,False,False,0)
+fl.pack_start(button("OK",lambda:out.run(R+"spiralos-language "+LN[cb.get_active()][0])),False,False,0)
+fl.pack_start(Gtk.Label(label="Log out and in again / Neu anmelden"),False,False,0)
+run_app(w)
