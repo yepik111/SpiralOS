@@ -3,3 +3,4 @@ sed -i 's/^# *de_DE.UTF-8/de_DE.UTF-8/' /etc/locale.gen; locale-gen || true
 chmod +x /usr/local/bin/*
 for u in spiralos-postinstall.service fstrim.timer spiralos-autoclean.timer spiralos-firewall-default.service fail2ban.service tlp.service unattended-upgrades.service; do systemctl enable "$u" 2>/dev/null || true; done
 systemctl disable NetworkManager-wait-online.service 2>/dev/null || true
+exit 0

@@ -4,3 +4,4 @@ for l in en_US de_DE es_ES fr_FR pt_BR ru_RU zh_CN ja_JP ar_EG hi_IN tr_TR it_IT
 done
 locale-gen || true
 chmod +x /usr/local/bin/*
+exit 0

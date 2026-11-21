@@ -10,7 +10,7 @@ mkdir -p "$OUT"
 exec > >(tee -a "$OUT/build.log") 2>&1
 echo "== SpiralOS-Build $(date) =="
 apt-get update
-apt-get install -y --no-install-recommends live-build debootstrap squashfs-tools xorriso mtools dosfstools e2fsprogs ca-certificates
+apt-get install -y --no-install-recommends live-build debootstrap squashfs-tools xorriso mtools dosfstools e2fsprogs ca-certificates gnupg apt-utils xz-utils bzip2 cpio file zstd rsync syslinux syslinux-common isolinux grub-pc-bin grub-efi-amd64-bin
 W=/tmp/spiralos-build
 rm -rf "$W"; mkdir -p "$W"
 IMG=""
@@ -29,7 +29,12 @@ find . -type f \( -path './auto/*' -o -name '*.hook.*' -o -name '*.list.*' -o -n
 chmod +x auto/* config/hooks/live/* config/includes.chroot/usr/local/bin/*
 [ -f config/includes.chroot/usr/share/spiralos/update-key.gpg ] || echo "HINWEIS: kein Update-Schluessel (tools/make-update-key) - Updates werden ungeprueft installiert."
 # Paketnamen pruefen, fehlende automatisch ueberspringen
-echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list.d/spiralos-check.list
+# Vorhandene Paketquelle um contrib/non-free erweitern (keine zweite, doppelte Quelle anlegen: das gaebe einen Signed-By-Konflikt)
+if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+  sed -i 's/^Components:.*/Components: main contrib non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources
+elif [ -f /etc/apt/sources.list ]; then
+  sed -i -E 's/^(deb[^#]* bookworm[^ ]* )main( .*)?$/\1main contrib non-free non-free-firmware/' /etc/apt/sources.list
+fi
 apt-get update
 MISSING=""
 for L in config/package-lists/*.chroot; do

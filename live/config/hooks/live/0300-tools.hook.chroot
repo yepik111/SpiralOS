@@ -13,3 +13,4 @@ command -v spiralos-tip >/dev/null 2>&1 && spiralos-tip
 command_not_found_handle() { printf '%s: command not found. Try: spiralos-pack %s  or  spiralos-store\n' "$1" "$1" >&2; return 127; }
 EOT
 printf '\nTipp: "spiralos-help" zeigt alle SpiralOS-Befehle.\n\n' >> /etc/motd
+exit 0
