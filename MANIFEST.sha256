@@ -1,4 +1,4 @@
-92cfd641dcbfdfcbe3f5bc1bbe99d9ed7e3f89603d53d89e8df98773bde2eaf2  VERSION
+44e161e4495cac2cf7858043e9e6418e9579f0ddcfae826f9a372622968ce066  VERSION
 44f05dc4975871f16af965122d7356b9bdf8e069960cbd5a49ea6a6c443ea7fc  rootfs/etc/apt/apt.conf.d/00spiralos-snapshot
 b81a3a01864d5ed7f8d023f3fa86d65087ad6b85706d399dc229a60b1c784807  rootfs/etc/apt/apt.conf.d/20auto-upgrades
 0c66f6d00dcd705266ae214e0008a011bf4b108a630dd6fcad4df629e369102c  rootfs/etc/bash_completion.d/spiralos
